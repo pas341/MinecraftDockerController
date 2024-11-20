@@ -1,0 +1,18 @@
+{
+    "socket": {
+        "server": "",
+        "port": -1
+    },
+    "database": {
+        "database_schema_debug": "",
+        "database_schema": "",
+        "database_host": "",
+        "database_port": "",
+        "database_user": "",
+        "database_pass": ""
+    },
+    "server": {
+        "serverid": -1,
+        "servertoken": ""
+    }
+}
