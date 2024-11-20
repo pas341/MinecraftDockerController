@@ -5,7 +5,7 @@ exports.manager = {
     init: async (scripts) => {
         util = scripts.util;
         config = scripts.config;
-        self = this.d;
+        self = this.manager;
 
         docker = new Docker();
     },
