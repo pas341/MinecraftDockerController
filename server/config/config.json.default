@@ -14,5 +14,9 @@
     "server": {
         "serverid": -1,
         "servertoken": ""
+    },
+    "rcon": {
+        "enabled": true,
+        "defaultAddress": "localhost"
     }
 }
