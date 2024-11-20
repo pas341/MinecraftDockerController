@@ -22,7 +22,7 @@ exports.so = {
         });
         socket.on("disconnect", (reason) => {
             disconnected = 1;
-            console.log(` [${identity}] ${util.prettyDate()} : [Warning] : socket disconnect: ${reason}`);
+            //console.log(` [${identity}] ${util.prettyDate()} : [Warning] : socket disconnect: ${reason}`);
         });
         socket.on("error", (error) => {
             console.log(` [${identity}] ${util.prettyDate()} : [ERROR] : [SOCKET ERROR]: ${error}`);
