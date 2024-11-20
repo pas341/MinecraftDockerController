@@ -40,6 +40,10 @@ exports.so = {
             }
         });
 
+        socket.on(`containerexists`, async (containername, callback) => {
+            await callback(await dockerManager.doesContainerExist(containername));
+        });
+
         socket.on(`stopanddeletecontainer`, async (containername, callback) => {
             try {
                 let containerRequest = await dockerManager.getContainer(containername);
