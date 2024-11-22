@@ -79,7 +79,7 @@ exports.so = {
                 let statusRequest = await dockerManager.getContainerStatus(containername);
                 if (statusRequest) {
                     if (statusRequest.code == 200) {
-                        await callback({code: 200, status: statusRequest.status});
+                        await callback({code: 200, status: statusRequest.status.data});
                     }else{
                         await callback({code: 9000, message: `error while getting container status`});
                     }
