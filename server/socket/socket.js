@@ -84,6 +84,8 @@ exports.so = {
                     }else{
                         await callback({code: 9000, message: `error while getting container status`});
                     }
+                }else{
+                    await callback({code: 9001, message: `error while getting container status`});
                 }
             }catch(e) {
                 console.error(e);
