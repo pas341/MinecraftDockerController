@@ -77,6 +77,7 @@ exports.so = {
         socket.on(`containerstatus`, async (containername, callback) => {
             try {
                 let statusRequest = await dockerManager.getContainerStatus(containername);
+                console.log(statusRequest);
                 if (statusRequest.code == 200) {
                     await callback({code: 200, status: statusRequest.status});
                 }else{
