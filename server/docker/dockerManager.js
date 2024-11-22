@@ -59,7 +59,7 @@ exports.manager = {
                 if (container) {
                     let status = await container.status();
                     if (status) {
-                        return {code: 200, status: status};
+                        return {code: 200, status: status.data};
                     }else{
                         return {code: 94, message: `Unable to fetch container status`};
                     }
