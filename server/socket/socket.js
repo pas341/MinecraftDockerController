@@ -25,9 +25,9 @@ exports.so = {
                 if (response.code == 201) {
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
                         socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`), machineid: machineid });
-                    }else if (response.code == 200) {
+                    } else if (response.code == 200) {
                         socket.emit(`identify`, { identity: response.token, machineid: machineid });
-                    }else{
+                    } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
                     }
@@ -118,6 +118,22 @@ exports.so = {
                 console.log(` [${identity}] : [INFO] : Socket ready for use`);
                 console.log(`License Info`);
                 console.log(`-------------------------------------------`);
+                if (response.code == 200 || response.code == 4258) {
+                    console.log(`License Holder: ${response.holder}`);
+                    console.log(`Max physical servers: ${response.maxphysicalservers}`);
+                    console.log(`Max minecraft servers: ${response.maxservers}`);
+                    if (response.remainingphysicalservers) {
+                        console.log(`Remaining Physical Servers: ${response.remainingphysicalservers}`);
+                    }
+                    if (response.remainingminecraftservers) {
+                        console.log(`Remaining Servers: ${response.remainingminecraftservers}`);
+                    }
+                    console.log(`License Status: ${response.status}`);
+                } else if (response.code == 4253) {
+                    console.log(response.message);
+                } else {
+                    console.log(response);
+                }
                 console.log(response);
                 console.log(`-------------------------------------------`);
                 resolve();
