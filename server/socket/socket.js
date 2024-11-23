@@ -30,9 +30,11 @@ exports.so = {
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
+                        process.exit();
                     }
                 } else {
                     socket.disconnect(true);
+                    process.exit()
                 }
             });
             console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server`);
@@ -151,6 +153,7 @@ exports.so = {
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
+                        process.exit();
                     }
                 }
             });
