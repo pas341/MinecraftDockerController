@@ -135,14 +135,14 @@ exports.so = {
                 } else if (response.code == 4253) {
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
-                    await util.sleep(99999999999);
+                    await util.sleep(60 * 1000 * 5);
                     process.exit(-1);
                 } else {
                     console.log(response);
                 }
                 if (response.code == 4258) {
                     console.log(`-------------------------------------------`);
-                    await util.sleep(99999999999);
+                    await util.sleep(60 * 1000 * 5);
                     process.exit(-1);
                 }
                 console.log(`-------------------------------------------`);
