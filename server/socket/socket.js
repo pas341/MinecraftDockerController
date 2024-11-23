@@ -122,10 +122,10 @@ exports.so = {
                     console.log(`License Holder: ${response.holder}`);
                     console.log(`Max physical servers: ${response.maxphysicalservers}`);
                     console.log(`Max minecraft servers: ${response.maxservers}`);
-                    if (response.remainingphysicalservers) {
+                    if (response.remainingphysicalservers != null) {
                         console.log(`Remaining Physical Servers: ${response.remainingphysicalservers}`);
                     }
-                    if (response.remainingminecraftservers) {
+                    if (response.remainingminecraftservers != null) {
                         console.log(`Remaining Servers: ${response.remainingminecraftservers}`);
                     }
                     console.log(`License Status: ${response.status}`);
