@@ -30,15 +30,16 @@ exports.so = {
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
-                        process.exit();
+                        process.exit(-1);
                     }
                 } else {
                     socket.disconnect(true);
-                    process.exit()
+                    process.exit(-1);
                 }
             });
             console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server`);
         });
+
         socket.on("disconnect", (reason) => {
             disconnected = 1;
             console.log(`socket disconnected:\n${reason}`);
@@ -133,8 +134,14 @@ exports.so = {
                     }
                 } else if (response.code == 4253) {
                     console.log(response.message);
+                    console.log(`-------------------------------------------`);
+                    process.exit(-1);
                 } else {
                     console.log(response);
+                }
+                if (response.code == 4258) {
+                    console.log(`-------------------------------------------`);
+                    process.exit(-1);
                 }
                 console.log(`-------------------------------------------`);
                 console.log(`\n \n`);
@@ -153,7 +160,7 @@ exports.so = {
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
-                        process.exit();
+                        process.exit(-1);
                     }
                 }
             });
