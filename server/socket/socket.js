@@ -119,15 +119,15 @@ exports.so = {
                 console.log(`\n \nLicense Info`);
                 console.log(`-------------------------------------------`);
                 if (response.code == 200 || response.code == 4258) {
-                    console.log(`License Holder: ${response.holder}`);
-                    console.log(`License Status: ${response.status}`);
+                    console.log(`License holder: ${response.holder}`);
+                    console.log(`License status: ${response.status}`);
                     console.log(`Max physical servers: ${response.maxphysicalservers}`);
                     if (response.remainingphysicalservers != null) {
-                        console.log(`Remaining Physical Servers: ${response.remainingphysicalservers}`);
+                        console.log(`Remaining physical servers: ${response.remainingphysicalservers}`);
                     }
-                    console.log(`Max Virtual servers: ${response.maxservers}`);
+                    console.log(`Max virtual servers: ${response.maxservers}`);
                     if (response.remainingminecraftservers != null) {
-                        console.log(`Remaining Virtual Servers: ${response.remainingminecraftservers}`);
+                        console.log(`Remaining virtual servers: ${response.remainingminecraftservers}`);
                     }
                 } else if (response.code == 4253) {
                     console.log(response.message);
