@@ -25,6 +25,8 @@ exports.so = {
                 if (response.code == 201) {
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
                         socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid });
+                    }else if (response.code == 200) {
+                        socket.emit(`identify`, { identity: response.token, machineid: machineid });
                     }else{
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
@@ -125,7 +127,6 @@ exports.so = {
                 if (response.code == 200) { // valid first register
                     if (response.token) {
                         fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
-                        socket.emit(`identify`, { identity: response.token, machineid: machineid }); // required for socket server to know who the server is...
                     }
                 } else if (response.code == 201) { // valid allready registered
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
