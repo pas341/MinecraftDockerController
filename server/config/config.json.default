@@ -18,5 +18,8 @@
     "rcon": {
         "enabled": true,
         "defaultAddress": "localhost"
+    },
+    "license": {
+        "key": ""
     }
 }

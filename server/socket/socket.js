@@ -98,8 +98,12 @@ exports.so = {
     connect: async () => {
         socket.open();
         await new Promise((resolve) => {
-            socket.once(`identconfirmed`, () => {
+            socket.once(`identconfirmed`, (response) => {
                 console.log(` [${identity}] : [INFO] : Socket ready for use`);
+                console.log(`License Info`);
+                console.log(`-------------------------------------------`);
+                console.log(response);
+                console.log(`-------------------------------------------`);
                 resolve();
             });
             socket.once("connect_error", (error) => {
