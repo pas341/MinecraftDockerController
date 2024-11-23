@@ -134,7 +134,6 @@ exports.so = {
                 } else {
                     console.log(response);
                 }
-                console.log(response);
                 console.log(`-------------------------------------------`);
                 resolve();
             });
