@@ -1,7 +1,7 @@
 var socket, identity, config, scripts, util, self, dockerManager;
 const io = require(`socket.io-client`);
-
-
+const machineId = require(`node-machine-id`).machineId;
+const machineIdSync = require(`node-machine-id`).machineIdSync;
 
 exports.so = {
     init: async (s, socketConfig) => {
@@ -17,11 +17,13 @@ exports.so = {
     },
     registerListeners: async () => {
         socket.on(`connect`, async () => {
-            socket.emit(`identify`, { identity: identity}); // required for socket server to know who the server is...
+            const machineid = machineIdSync(true);
+            socket.emit(`identify`, { identity: identity, machineid: machineid, license: config.license.key}); // required for socket server to know who the server is...
             console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server` );
         });
         socket.on("disconnect", (reason) => {
             disconnected = 1;
+            console.log(`socket disconnected:\n${reason}`);
             //console.log(` [${identity}] ${util.prettyDate()} : [Warning] : socket disconnect: ${reason}`);
         });
         socket.on("error", (error) => {
