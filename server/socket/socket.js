@@ -117,7 +117,7 @@ exports.so = {
     connect: async () => {
         socket.open();
         await new Promise((resolve) => {
-            socket.once(`identconfirmed`, (response) => {
+            socket.once(`identconfirmed`, async (response) => {
                 console.log(` [${identity}] : [INFO] : Socket ready for use`);
                 console.log(`\n \nLicense Info`);
                 console.log(`-------------------------------------------`);
@@ -135,12 +135,14 @@ exports.so = {
                 } else if (response.code == 4253) {
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
+                    await util.sleep(99999999999);
                     process.exit(-1);
                 } else {
                     console.log(response);
                 }
                 if (response.code == 4258) {
                     console.log(`-------------------------------------------`);
+                    await util.sleep(99999999999);
                     process.exit(-1);
                 }
                 console.log(`-------------------------------------------`);
