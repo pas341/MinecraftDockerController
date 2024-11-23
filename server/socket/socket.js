@@ -21,14 +21,14 @@ exports.so = {
     registerListeners: async () => {
         socket.on(`connect`, async () => {
             const machineid = machineIdSync(true);
-            socket.emit(`serverregister`, {setup: config.setup, machineid: machineid, license: config.license.key}, async (response) => {
+            socket.emit(`serverregister`, { setup: config.setup, machineid: machineid, license: config.license.key }, async (response) => {
                 if (response.code == 201) {
-                    socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid});
-                }else{
+                    socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid });
+                } else {
                     socket.disconnect(true);
                 }
             });
-            console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server` );
+            console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server`);
         });
         socket.on("disconnect", (reason) => {
             disconnected = 1;
@@ -44,10 +44,10 @@ exports.so = {
             try {
                 console.log(`starting: ${containerConfig.name}`);
                 let container = await dockerManager.createContainer(containerConfig);
-                await callback({code: container.code, message: container.message});
-            }catch (e) {
+                await callback({ code: container.code, message: container.message });
+            } catch (e) {
                 console.error(e);
-                await callback({code: 5000, message: `error durring container startup`});
+                await callback({ code: 5000, message: `error durring container startup` });
             }
         });
 
@@ -61,12 +61,12 @@ exports.so = {
                 if (containerRequest.code == 200) {
                     console.log(`Stopping: ${containername}`);
                     let container = containerRequest.container;
-                    await container.stop().then(con => con.delete()).then(async () => {await callback({code: 200, message: `container stopped and deleted`})});
+                    await container.stop().then(con => con.delete()).then(async () => { await callback({ code: 200, message: `container stopped and deleted` }) });
                     console.log(`${containername}: stopped and deleted`);
                 }
-            }catch (e) {
+            } catch (e) {
                 console.error(e);
-                await callback({code: 5000, message: `error durring container shutdown`});
+                await callback({ code: 5000, message: `error durring container shutdown` });
             }
         });
 
@@ -76,12 +76,12 @@ exports.so = {
                 if (containerRequest.code == 200) {
                     console.log(`Stopping: ${containername}`);
                     let container = containerRequest.container;
-                    await container.restart().then(async () => {await callback({code: 200, message: `container restarting`})});
+                    await container.restart().then(async () => { await callback({ code: 200, message: `container restarting` }) });
                     console.log(`${containername}: stopped and deleted`);
                 }
-            }catch (e) {
+            } catch (e) {
                 console.error(e);
-                await callback({code: 5000, message: `error durring container restart`});
+                await callback({ code: 5000, message: `error durring container restart` });
             }
         });
 
@@ -90,16 +90,16 @@ exports.so = {
                 let statusRequest = await dockerManager.getContainerStatus(containername);
                 if (statusRequest) {
                     if (statusRequest.code == 200) {
-                        await callback({code: 200, status: statusRequest.status.data});
-                    }else{
-                        await callback({code: 9000, message: `error while getting container status`});
+                        await callback({ code: 200, status: statusRequest.status.data });
+                    } else {
+                        await callback({ code: 9000, message: `error while getting container status` });
                     }
-                }else{
-                    await callback({code: 9001, message: `error while getting container status`});
+                } else {
+                    await callback({ code: 9001, message: `error while getting container status` });
                 }
-            }catch(e) {
+            } catch (e) {
                 console.error(e);
-                await callback({code: 5000, message: `error while getting container status`});
+                await callback({ code: 5000, message: `error while getting container status` });
             }
         });
 
@@ -120,11 +120,16 @@ exports.so = {
                 if (response.code == 200) { // valid first register
                     if (response.token) {
                         fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
-                        socket.emit(`identify`, { identity: response.token, machineid: machineid}); // required for socket server to know who the server is...
+                        socket.emit(`identify`, { identity: response.token, machineid: machineid }); // required for socket server to know who the server is...
                     }
-                }else if (response.code == 201) { // valid allready registered
-                    let token = fs.readFileSync(`${process.cwd()}/data/token.txt`);
-                    socket.emit(`identify`, { identity: token, machineid: machineid}); // required for socket server to know who the server is...
+                } else if (response.code == 201) { // valid allready registered
+                    if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
+                        let token = fs.readFileSync(`${process.cwd()}/data/token.txt`);
+                        socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
+                    }else{
+                        console.log(`Server Token missing for server please contact the tool developer`);
+                        socket.disconnect(true);
+                    }
                 }
             });
             socket.once("connect_error", (error) => {
