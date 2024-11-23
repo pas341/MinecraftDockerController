@@ -18,7 +18,13 @@ exports.so = {
     registerListeners: async () => {
         socket.on(`connect`, async () => {
             const machineid = machineIdSync(true);
-            socket.emit(`identify`, { identity: identity, machineid: machineid, license: config.license.key}); // required for socket server to know who the server is...
+            socket.emit(`serverregister`, {setup: config.setup, machineid: machineid, license: config.license.key}, async (response) => {
+                if (response.code == 200) {
+                    socket.emit(`identify`, { identity: identity, machineid: machineid}); // required for socket server to know who the server is...
+                }else{
+                    socket.disconnect(true);
+                }
+            });
             console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server` );
         });
         socket.on("disconnect", (reason) => {
