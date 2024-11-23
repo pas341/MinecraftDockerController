@@ -10,7 +10,7 @@ exports.so = {
         scripts = s;
         config = s.config.main;
         if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-            identity = fs.readFileSync(`${process.cwd()}/data/token.txt`);
+            identity = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
         }
         util = s.util;
         dockerManager = s.managers.docker;
@@ -24,7 +24,7 @@ exports.so = {
             socket.emit(`serverregister`, { setup: config.setup, machineid: machineid, license: config.license.key }, async (response) => {
                 if (response.code == 201) {
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-                        socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid });
+                        socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`), machineid: machineid });
                     }else if (response.code == 200) {
                         socket.emit(`identify`, { identity: response.token, machineid: machineid });
                     }else{
@@ -130,7 +130,7 @@ exports.so = {
                     }
                 } else if (response.code == 201) { // valid allready registered
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-                        let token = fs.readFileSync(`${process.cwd()}/data/token.txt`);
+                        let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
                         socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
