@@ -116,7 +116,7 @@ exports.so = {
         await new Promise((resolve) => {
             socket.once(`identconfirmed`, (response) => {
                 console.log(` [${identity}] : [INFO] : Socket ready for use`);
-                console.log(`License Info`);
+                console.log(`\n\nLicense Info`);
                 console.log(`-------------------------------------------`);
                 if (response.code == 200 || response.code == 4258) {
                     console.log(`License Holder: ${response.holder}`);
@@ -126,7 +126,7 @@ exports.so = {
                         console.log(`Remaining Physical Servers: ${response.remainingphysicalservers}`);
                     }
                     if (response.remainingminecraftservers != null) {
-                        console.log(`Remaining Servers: ${response.remainingminecraftservers}`);
+                        console.log(`Remaining Virtual Servers: ${response.remainingminecraftservers}`);
                     }
                     console.log(`License Status: ${response.status}`);
                 } else if (response.code == 4253) {
@@ -135,6 +135,7 @@ exports.so = {
                     console.log(response);
                 }
                 console.log(`-------------------------------------------`);
+                console.log(`\n\n`);
                 resolve();
             });
             socket.once(`registerfinished`, (response) => {
