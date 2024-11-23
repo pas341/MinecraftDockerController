@@ -23,7 +23,12 @@ exports.so = {
             const machineid = machineIdSync(true);
             socket.emit(`serverregister`, { setup: config.setup, machineid: machineid, license: config.license.key }, async (response) => {
                 if (response.code == 201) {
-                    socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid });
+                    if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
+                        socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`), machineid: machineid });
+                    }else{
+                        console.log(`Server Token missing for server please contact the tool developer`);
+                        socket.disconnect(true);
+                    }
                 } else {
                     socket.disconnect(true);
                 }
@@ -126,7 +131,7 @@ exports.so = {
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
                         let token = fs.readFileSync(`${process.cwd()}/data/token.txt`);
                         socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
-                    }else{
+                    } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
                     }
