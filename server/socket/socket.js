@@ -125,7 +125,7 @@ exports.so = {
                     if (response.remainingphysicalservers != null) {
                         console.log(`Remaining Physical Servers: ${response.remainingphysicalservers}`);
                     }
-                    console.log(`Max minecraft servers: ${response.maxservers}`);
+                    console.log(`Max Virtual servers: ${response.maxservers}`);
                     if (response.remainingminecraftservers != null) {
                         console.log(`Remaining Virtual Servers: ${response.remainingminecraftservers}`);
                     }
