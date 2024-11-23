@@ -9,7 +9,9 @@ exports.so = {
         self = this.so;
         scripts = s;
         config = s.config.main;
-        identity = config.server.servertoken;
+        if (fs.existsSync(`/data/token.txt`)) {
+            identity = fs.readFileSync(`/data/token.txt`);
+        }
         util = s.util;
         dockerManager = s.managers.docker;
 
@@ -20,7 +22,8 @@ exports.so = {
         socket.on(`connect`, async () => {
             const machineid = machineIdSync(true);
             socket.emit(`serverregister`, {setup: config.setup, machineid: machineid, license: config.license.key}, async (response) => {
-                if (response.code == 200) {
+                if (response.code == 201) {
+                    socket.emit(`identify`, { identity: fs.readFileSync(`/data/token.txt`), machineid: machineid});
                 }else{
                     socket.disconnect(true);
                 }
