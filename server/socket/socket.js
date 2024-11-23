@@ -10,7 +10,7 @@ exports.so = {
         scripts = s;
         config = s.config.main;
         if (fs.existsSync(`./data/token.txt`)) {
-            identity = fs.readFileSync(`/data/token.txt`);
+            identity = fs.readFileSync(`${__dirname}/data/token.txt`);
         }
         util = s.util;
         dockerManager = s.managers.docker;
@@ -23,7 +23,7 @@ exports.so = {
             const machineid = machineIdSync(true);
             socket.emit(`serverregister`, {setup: config.setup, machineid: machineid, license: config.license.key}, async (response) => {
                 if (response.code == 201) {
-                    socket.emit(`identify`, { identity: fs.readFileSync(`./data/token.txt`), machineid: machineid});
+                    socket.emit(`identify`, { identity: fs.readFileSync(`${__dirname}/data/token.txt`), machineid: machineid});
                 }else{
                     socket.disconnect(true);
                 }
@@ -119,11 +119,11 @@ exports.so = {
                 const machineid = machineIdSync(true);
                 if (response.code == 200) { // valid first register
                     if (response.token) {
-                        fs.writeFileSync(`./data/token.txt`, response.token);
+                        fs.writeFileSync(`${__dirname}/data/token.txt`, response.token);
                         socket.emit(`identify`, { identity: response.token, machineid: machineid}); // required for socket server to know who the server is...
                     }
                 }else if (response.code == 201) { // valid allready registered
-                    let token = fs.readFileSync(`./data/token.txt`);
+                    let token = fs.readFileSync(`${__dirname}/data/token.txt`);
                     socket.emit(`identify`, { identity: token, machineid: machineid}); // required for socket server to know who the server is...
                 }
             });
