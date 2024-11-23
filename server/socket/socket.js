@@ -2,6 +2,7 @@ var socket, identity, config, scripts, util, self, dockerManager;
 const io = require(`socket.io-client`);
 const machineId = require(`node-machine-id`).machineId;
 const machineIdSync = require(`node-machine-id`).machineIdSync;
+const fs = require(`fs`);
 
 exports.so = {
     init: async (s, socketConfig) => {
@@ -20,7 +21,6 @@ exports.so = {
             const machineid = machineIdSync(true);
             socket.emit(`serverregister`, {setup: config.setup, machineid: machineid, license: config.license.key}, async (response) => {
                 if (response.code == 200) {
-                    socket.emit(`identify`, { identity: identity, machineid: machineid}); // required for socket server to know who the server is...
                 }else{
                     socket.disconnect(true);
                 }
@@ -111,6 +111,18 @@ exports.so = {
                 console.log(response);
                 console.log(`-------------------------------------------`);
                 resolve();
+            });
+            socket.once(`registerfinished`, (response) => {
+                const machineid = machineIdSync(true);
+                if (response.code == 200) { // valid first register
+                    if (response.token) {
+                        fs.writeFileSync(`/data/token.txt`, response.token);
+                        socket.emit(`identify`, { identity: response.token, machineid: machineid}); // required for socket server to know who the server is...
+                    }
+                }else if (response.code == 201) { // valid allready registered
+                    let token = fs.readFileSync(`/data/token.txt`);
+                    socket.emit(`identify`, { identity: token, machineid: machineid}); // required for socket server to know who the server is...
+                }
             });
             socket.once("connect_error", (error) => {
                 console.log(` [${identity}] : [ERROR] : [SOCKET ERROR]: ${error}`);
