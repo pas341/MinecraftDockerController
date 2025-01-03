@@ -3,6 +3,51 @@ const io = require(`socket.io-client`);
 const machineId = require(`node-machine-id`).machineId;
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 const fs = require(`fs`);
+const { exec, execSync } = require('child_process');
+
+function isWindows() {
+    return process.platform === 'win32';
+}
+
+function showPopupMessage(message, title = 'Message') {
+    if (!isWindows()) {
+        console.log(` [${identity}] ${util.prettyDate()} : [INFO] : [Popup] : ${title} : ${message}`);
+        return;
+    }
+    const command = `powershell -command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('${message}', '${title}')"`;
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.error(`Stderr: ${stderr}`);
+            return;
+        }
+        console.log(`Stdout: ${stdout}`);
+    });
+}
+
+function preventPM2Restart() {
+    const command = `pm2 stop ${process.env.name}`;
+    const listCommand = `pm2 list | grep ${process.env.name}`;
+    try {
+        execSync(listCommand, { stdio: 'inherit' });
+    } catch (error) {
+        console.log(`Application ${process.env.name} is not running under PM2.`);
+        return;
+    }
+    execSync(command, { stdio: 'inherit' });
+}
+
+function showPopupAndWait(message, title) {
+    if (!isWindows()) {
+        console.log(` [${identity}] ${util.prettyDate()} : [INFO] : [Popup] : ${title} : ${message}`);
+        return;
+    }
+    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Error')}"`;
+    execSync(command, { stdio: 'inherit' });
+}
 
 exports.so = {
     init: async (s, socketConfig) => {
@@ -65,6 +110,38 @@ exports.so = {
             await callback(await dockerManager.doesContainerExist(containername));
         });
 
+        socket.on(`stopcontainer`, async (containername, callback) => {
+            try {
+                let containerRequest = await dockerManager.getContainer(containername);
+                if (containerRequest.code == 200) {
+                    console.log(`Stopping: ${containername}`);
+                    let container = containerRequest.container;
+                    await container.stop().then(async () => { await callback({ code: 200, message: `container stopped` }) });
+                    console.log(`${containername}: stopped`);
+                }
+            } catch (e) {
+                console.error(e);
+                await callback({ code: 5000, message: `error durring container shutdown` });
+            }
+        });
+
+        socket.on(`deletecontainer`, async (containername, callback) => {
+            try {
+                let containerRequest = await dockerManager.getContainer(containername);
+                if (containerRequest.code == 200) {
+                    console.log(`Deleting: ${containername}`);
+                    let container = containerRequest.container;
+                    await container.delete().then(async () => { await callback({ code: 200, message: `container deleted` }) });
+                    console.log(`${containername}: deleted`);
+                }else{
+                    await callback({ code: 12, message: `cannot find container by name: ${containername}` });
+                }
+            } catch (e) {
+                console.error(e);
+                await callback({ code: 5000, message: `error durring container shutdown` });
+            }
+        });
+
         socket.on(`stopanddeletecontainer`, async (containername, callback) => {
             try {
                 let containerRequest = await dockerManager.getContainer(containername);
@@ -87,7 +164,7 @@ exports.so = {
                     console.log(`Stopping: ${containername}`);
                     let container = containerRequest.container;
                     await container.restart().then(async () => { await callback({ code: 200, message: `container restarting` }) });
-                    console.log(`${containername}: stopped and deleted`);
+                    console.log(`${containername}: restarted`);
                 }
             } catch (e) {
                 console.error(e);
@@ -113,6 +190,13 @@ exports.so = {
             }
         });
 
+        socket.on(`message`, async (message) => {
+            showPopupMessage(message, "Message from Server");
+        });
+
+        socket.on(`popup`, async (message, title) => {
+            showPopupMessage(message, title);
+        });
     },
     connect: async () => {
         socket.open();
@@ -121,35 +205,35 @@ exports.so = {
                 console.log(` [${identity}] : [INFO] : Socket ready for use`);
                 console.log(`\n \nLicense Info`);
                 console.log(`-------------------------------------------`);
-                if (response.code == 200 || response.code == 4258) {
+                if (response.code == 200) {
                     console.log(`License holder: ${response.holder}`);
                     console.log(`License status: ${response.status}`);
-                    console.log(`Max physical servers: ${response.maxphysicalservers}`);
-                    if (response.remainingphysicalservers != null) {
-                        console.log(`Remaining physical servers: ${response.remainingphysicalservers}`);
+                    console.log(`Max physical servers: ${response.maxservers}`);
+                    if (response.serversavalible != null) {
+                        console.log(`Remaining physical servers: ${response.serversavalible}`);
                     }
-                    console.log(`Max virtual servers: ${response.maxservers}`);
-                    if (response.remainingminecraftservers != null) {
-                        console.log(`Remaining virtual servers: ${response.remainingminecraftservers}`);
+                    console.log(`Max virtual servers: ${response.maxcontainers}`);
+                    if (response.containersavalible != null) {
+                        console.log(`Remaining virtual servers: ${response.containersavalible}`);
                     }
                 } else if (response.code == 4253) {
+                    showPopupAndWait("Invalid License", "License Error");
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
-                    await util.sleep(60 * 1000 * 5);
-                    process.exit(-1);
+                    preventPM2Restart();
                 } else {
                     console.log(response);
                 }
                 if (response.code == 4258) {
+                    showPopupAndWait("License Disabled by the provider", "License Error");
                     console.log(`-------------------------------------------`);
-                    await util.sleep(60 * 1000 * 5);
-                    process.exit(-1);
+                    preventPM2Restart();
                 }
                 console.log(`-------------------------------------------`);
                 console.log(`\n \n`);
                 resolve();
             });
-            socket.once(`registerfinished`, (response) => {
+            socket.once(`registerfinished`, async (response) => {
                 const machineid = machineIdSync(true);
                 if (response.code == 200) { // valid first register
                     if (response.token) {
@@ -162,6 +246,7 @@ exports.so = {
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
+                        await util.sleep(60 * 1000 * 5);
                         process.exit(-1);
                     }
                 }
@@ -180,3 +265,4 @@ exports.so = {
         return socket;
     },
 };
+

@@ -133,3 +133,5 @@ server/config/config.json
 package-lock.json
 Procfile
 .vscode/*
+data/*
+test.js

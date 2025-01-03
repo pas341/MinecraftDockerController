@@ -75,6 +75,10 @@ exports.manager = {
         if (!docker) {
             return {code: 502, message: `docker is not avalible on this server at the moment`, container: null};
         }
+        if (self.doesContainerExist(containerConfig.name)) {
+            return {code: 409, message: `container already exists`, container: null};
+        }
+
         let container = await docker.container.create(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
