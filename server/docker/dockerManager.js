@@ -35,7 +35,6 @@ exports.manager = {
     },
     doesContainerExist: async (containername) => {
         let containerRequest = await self.getContainer(containername);
-        console.log(containerRequest);
         return containerRequest.container != null;
     },
     deleteContainer: async (containername) => {
@@ -79,7 +78,7 @@ exports.manager = {
         }
 
         console.log(containerConfig.name);
-
+        console.log(self.doesContainerExist(containerConfig.name));
         if (self.doesContainerExist(containerConfig.name)) {
             return {code: 409, message: `container already exists`, container: null};
         }
