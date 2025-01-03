@@ -49,7 +49,7 @@ exports.manager = {
                 return { code: 93, message: `Container not found for deleteContainer(${containername})`, failedCall: con };
             }
         } else {
-            return { code: 92, message: `Failed to run container list durring deleteContainer(${containername})` };
+            return { code: 92, message: `Failed to run container list durring delete Container(${containername})` };
         }
     },
     getContainerStatus: async (containername) => {
