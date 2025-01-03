@@ -75,6 +75,9 @@ exports.manager = {
         if (!docker) {
             return {code: 502, message: `docker is not avalible on this server at the moment`, container: null};
         }
+
+        console.log(containerConfig.name);
+
         if (self.doesContainerExist(containerConfig.name)) {
             return {code: 409, message: `container already exists`, container: null};
         }
