@@ -34,7 +34,9 @@ exports.manager = {
         }
     },
     doesContainerExist: async (containername) => {
-        return (await self.getContainer(containername)).container != null;
+        let containerRequest = await self.getContainer(containername);
+        console.log(containerRequest);
+        return containerRequest.container != null;
     },
     deleteContainer: async (containername) => {
         let con = await self.getContainer(containername);
