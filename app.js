@@ -43,22 +43,4 @@ const interactions = {
 	// initializing processes
 
 	// initialize the event and command handlers
-	function generateRandomKey() {
-		const segments = [
-			4, // xxxx
-			6, // xxxxxx
-			3, // xxx
-			5, // xxxxx
-			4  // xxxx
-			];
-	
-			return segments.map(segment => {
-			return Array(segment).fill(0).map(() => {
-				return Math.floor(Math.random() * 36).toString(36);
-			}).join('');
-			}).join('-');
-		}
-	
-		const keys = Array.from({ length: 20 }, generateRandomKey);
-		console.log(keys);
 })();
