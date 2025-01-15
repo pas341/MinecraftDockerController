@@ -106,6 +106,17 @@ exports.so = {
             }
         });
 
+        socket.on("deploycontainer", async (containerConfig, callback) => {
+            try {
+                console.log(`deploy: ${containerConfig.name}`);
+                let container = await dockerManager.createContainer(containerConfig);
+                await callback({ code: container.code, message: container.message });
+            } catch (e) {
+                console.error(e);
+                await callback({ code: 5000, message: `error durring container startup` });
+            }
+        });
+
         socket.on(`containerexists`, async (containername, callback) => {
             await callback(await dockerManager.doesContainerExist(containername));
         });
