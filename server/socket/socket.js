@@ -95,14 +95,18 @@ exports.so = {
             console.error(error);
         });
 
-        socket.on("startcontainer", async (containerConfig, callback) => {
+        socket.on(`startcontainer`, async (containername, callback) => {
             try {
-                console.log(`starting: ${containerConfig.name}`);
-                let container = await dockerManager.createContainer(containerConfig);
-                await callback({ code: container.code, message: container.message });
+                let containerRequest = await dockerManager.getContainer(containername);
+                if (containerRequest.code == 200) {
+                    console.log(`Starting: ${containername}`);
+                    let container = containerRequest.container;
+                    await container.start().then(async () => { await callback({ code: 200, message: `container started` }) });
+                    console.log(`${containername}: stopped`);
+                }
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container startup` });
+                await callback({ code: 5000, message: `error durring container shutdown` });
             }
         });
 
@@ -113,7 +117,7 @@ exports.so = {
                 await callback({ code: container.code, message: container.message });
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container startup` });
+                await callback({ code: 5000, message: `error durring container deployment` });
             }
         });
 
