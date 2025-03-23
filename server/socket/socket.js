@@ -232,6 +232,11 @@ exports.so = {
             }
         });
 
+        socket.on(`getlogs`, async (containername, callback) => {
+            let logs = await dockerManager.getContainerLogs(containername);
+            await callback(logs);
+        });
+
         socket.on(`message`, async (message) => {
             showPopupMessage(message, "Message from Server");
         });

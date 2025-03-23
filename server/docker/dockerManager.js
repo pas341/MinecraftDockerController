@@ -85,5 +85,18 @@ exports.manager = {
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
         return container;
+    },
+    getLogs: async (containername) => {
+        if (!docker) {
+            return {code: 502, message: `docker is not avalible on this server at the moment`, container: null};
+        }
+
+        if (!await self.doesContainerExist(containername)) {
+            return {code: 404, message: `container does not exist`, container: null};
+        }
+
+        let con = await self.getContainer(containername);
+        let logs = await con.container.logs({ follow: true, stdout: true, stderr: true });
+        return {code: 200, message: `Logs is in the Logs object`, logs: logs};
     }
 }
