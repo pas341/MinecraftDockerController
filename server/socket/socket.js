@@ -237,6 +237,7 @@ exports.so = {
         });
 
         socket.on(`popup`, async (message, title, type) => {
+            console.log(` [${identity}] ${util.prettyDate()} : [INFO] : [Popup] : [TYPE] : ${title} : ${message} : ${type}`);
             if (type == undefined || type == null) {
                 showPopupMessage(message, title);
                 return;
