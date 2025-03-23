@@ -237,6 +237,11 @@ exports.so = {
         });
 
         socket.on(`popup`, async (message, title, type) => {
+            if (type == undefined || type == null) {
+                showPopupMessage(message, title);
+                return;
+            }
+            
             if (type == 0) {
                 showInfoPopup(message, title);
             }else if (type == 1) {
