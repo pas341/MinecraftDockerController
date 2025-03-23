@@ -242,7 +242,7 @@ exports.so = {
                 showPopupMessage(message, title);
                 return;
             }
-
+            
             if (type == 0) {
                 showInfoPopup(message, title);
             }else if (type == 1) {
