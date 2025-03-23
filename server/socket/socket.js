@@ -45,7 +45,7 @@ function showPopupAndWait(message, title) {
         console.log(` [${identity}] ${util.prettyDate()} : [INFO] : [Popup] : ${title} : ${message}`);
         return;
     }
-    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Error')}"`;
+    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::EnableVisualStyles(); $form = New-Object System.Windows.Forms.Form; $form.WindowState = 'Minimized'; $form.ShowInTaskbar = $false; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Error')}"`;
     execSync(command, { stdio: 'inherit' });
 }
 
@@ -54,7 +54,7 @@ function showErrorPopup(message, title = 'Error') {
         console.log(` [${identity}] ${util.prettyDate()} : [ERROR] : [Popup] : ${title} : ${message}`);
         return;
     }
-    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Error; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Error', [System.Windows.Forms.MessageBoxIcon]::Error, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)"}`;
+    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::EnableVisualStyles(); $form = New-Object System.Windows.Forms.Form; $form.WindowState = 'Minimized'; $form.ShowInTaskbar = $false; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Error; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Error', [System.Windows.Forms.MessageBoxIcon]::Error, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)}"`;
     execSync(command, { stdio: 'inherit' });
 }
 
@@ -63,7 +63,7 @@ function showWarningPopup(message, title = 'Warning') {
         console.log(` [${identity}] ${util.prettyDate()} : [WARNING] : [Popup] : ${title} : ${message}`);
         return;
     }
-    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Warning; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Warning', [System.Windows.Forms.MessageBoxIcon]::Warning, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)"}`;
+    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::EnableVisualStyles(); $form = New-Object System.Windows.Forms.Form; $form.WindowState = 'Minimized'; $form.ShowInTaskbar = $false; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Warning; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Warning', [System.Windows.Forms.MessageBoxIcon]::Warning, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)}"`;
     execSync(command, { stdio: 'inherit' });
 }
 
@@ -72,7 +72,7 @@ function showInfoPopup(message, title = 'Info') {
         console.log(` [${identity}] ${util.prettyDate()} : [INFO] : [Popup] : ${title} : ${message}`);
         return;
     }
-    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Information; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Info', [System.Windows.Forms.MessageBoxIcon]::Information, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)"}`;
+    const command = `powershell -command "& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::EnableVisualStyles(); $form = New-Object System.Windows.Forms.Form; $form.WindowState = 'Minimized'; $form.ShowInTaskbar = $false; [System.Drawing.Bitmap]; $icon = [System.Drawing.SystemIcons]::Information; [System.Windows.Forms.MessageBox]::Show('${message}', '${title}', 'OK', 'Info', [System.Windows.Forms.MessageBoxIcon]::Information, [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::DefaultDesktopOnly, $icon)}"`;
     execSync(command, { stdio: 'inherit' });
 }
 
@@ -241,7 +241,7 @@ exports.so = {
                 showPopupMessage(message, title);
                 return;
             }
-            
+
             if (type == 0) {
                 showInfoPopup(message, title);
             }else if (type == 1) {
