@@ -98,5 +98,9 @@ exports.manager = {
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ follow: true, stdout: true, stderr: true });
         return {code: 200, message: `Logs is in the Logs object`, logs: logs};
+    },
+    getContainers: async () => {
+        let containers = await docker.container.list({ all: true });
+        return containers;
     }
 }
