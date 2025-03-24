@@ -239,7 +239,19 @@ exports.so = {
 
         socket.on(`getcontainers`, async (callback) => {
             let containers = await dockerManager.getContainers();
-            await callback(containers);
+            let output = [];
+            
+            for (let c of containers) {
+                let container = c.data;
+                let names = container.Names;
+                let state = container.State;
+                let status = container.Status;
+                let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
+                output.push(obj);
+            }
+
+
+            await callback(output);
         });
 
         socket.on(`message`, async (message) => {
@@ -262,6 +274,11 @@ exports.so = {
             }else{
                 showPopupMessage(message, title);
             }
+        });
+
+        socket.on(`getsupportedpackets`, async (callback) => {
+            let output = ["startcontainer", "stopcontainer", "deletecontainer", "stopanddeletecontainer", "restartcontainer", "containerstatus", "getlogs", "getcontainers", "message", "popup"];
+            await callback({ code: 200, packets: output });
         });
     },
     connect: async () => {
