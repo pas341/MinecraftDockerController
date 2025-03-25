@@ -276,7 +276,6 @@ exports.so = {
                 output.push(obj);
             }
 
-
             await callback(output);
         });
 
