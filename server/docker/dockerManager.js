@@ -86,8 +86,8 @@ exports.manager = {
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
         return container;
-    },
-    getLogs: async (containername) => {
+        },
+        getLogs: async (containername) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -99,6 +99,24 @@ exports.manager = {
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
 
+        // Split logs into lines and return only the last 250 lines
+        let logLines = logs.toString().split('\n');
+        let last250Lines = logLines.slice(-250).join('\n');
+
+        return { code: 200, message: `Logs are in the logs object`, logs: last250Lines };
+        },
+        clearLogs: async (containername) => {
+        if (!docker) {
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        }
+
+        if (!await self.doesContainerExist(containername)) {
+            return { code: 404, message: `container does not exist`, container: null };
+        }
+
+        let con = await self.getContainer(containername);
+        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+        
         return { code: 200, message: `Logs are in the logs object`, logs: logs.toString() };
     },
     getContainers: async () => {

@@ -341,6 +341,19 @@ exports.so = {
             }
         });
 
+        socket.on("disconnect", async (reason) => {
+            console.log(`Socket disconnected: ${reason}`);
+            let reconnectInterval = setInterval(() => {
+            if (!socket.connected) {
+                console.log("Attempting to reconnect...");
+                socket.connect();
+            } else {
+                console.log("Reconnected successfully.");
+                clearInterval(reconnectInterval);
+            }
+            }, 5000); // Retry every 5 seconds
+        });
+
     },
     connect: async () => {
         socket.open();
