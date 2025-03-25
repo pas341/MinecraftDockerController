@@ -118,7 +118,7 @@ exports.manager = {
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
 
         // Split logs into lines and reverse them
-        let logLines = logs.toString().split('\n').reverse();
+        let logLines = logs.toString().split('\n');
 
         // Calculate pagination
         let totalLines = logLines.length;
