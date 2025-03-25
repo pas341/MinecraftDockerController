@@ -5,9 +5,13 @@ const machineIdSync = require(`node-machine-id`).machineIdSync;
 const fs = require(`fs`);
 const { exec, execSync } = require('child_process');
 
+const commandSessions = {};
+
 function isWindows() {
     return process.platform === 'win32';
 }
+
+
 
 function showPopupMessage(message, title = 'Message') {
     if (!isWindows()) {
@@ -76,6 +80,23 @@ function showInfoPopup(message, title = 'Info') {
     execSync(command, { stdio: 'inherit' });
 }
 
+function runCommand(command) {
+    const options = { shell: isWindows() ? 'powershell.exe' : undefined, windowsHide: true };
+    return new Promise((resolve, reject) => {
+        exec(command, options, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return reject(error.message);
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+            }
+            console.log(`Stdout: ${stdout}`);
+            resolve(stdout.trim());
+        });
+    });
+}
+
 exports.so = {
     init: async (s, socketConfig) => {
         self = this.so;
@@ -129,7 +150,7 @@ exports.so = {
                     console.log(`Starting: ${containername}`);
                     let container = containerRequest.container;
                     await container.start().then(async () => { await callback({ code: 200, message: `container started` }) });
-                    console.log(`${containername}: stopped`);
+                    console.log(`${containername}: started`);
                 }
             } catch (e) {
                 console.error(e);
@@ -173,7 +194,7 @@ exports.so = {
                 if (containerRequest.code == 200) {
                     console.log(`Deleting: ${containername}`);
                     let container = containerRequest.container;
-                    await container.delete().then(async () => { await callback({ code: 200, message: `container deleted` }) });
+                    await container.remove().then(async () => { await callback({ code: 200, message: `container deleted` }) });
                     console.log(`${containername}: deleted`);
                 }else{
                     await callback({ code: 12, message: `cannot find container by name: ${containername}` });
@@ -219,7 +240,7 @@ exports.so = {
                 let statusRequest = await dockerManager.getContainerStatus(containername);
                 if (statusRequest) {
                     if (statusRequest.code == 200) {
-                        await callback({ code: 200, status: statusRequest.status.data });
+                        await callback({ code: 200, status: statusRequest.status });
                     } else {
                         await callback({ code: 9000, message: `error while getting container status` });
                     }
@@ -233,7 +254,7 @@ exports.so = {
         });
 
         socket.on(`getlogs`, async (containername, callback) => {
-            let logs = await dockerManager.getContainerLogs(containername);
+            let logs = await dockerManager.getLogs(containername);
             await callback(logs);
         });
 
@@ -241,8 +262,8 @@ exports.so = {
             let containers = await dockerManager.getContainers();
             let output = [];
             
-            for (let c of containers) {
-                let container = c.data;
+
+            for (let container of containers) {
                 let names = container.Names;
                 let state = container.State;
                 let status = container.Status;
@@ -280,6 +301,46 @@ exports.so = {
             let output = ["startcontainer", "stopcontainer", "deletecontainer", "stopanddeletecontainer", "restartcontainer", "containerstatus", "getlogs", "getcontainers", "message", "popup"];
             await callback({ code: 200, packets: output });
         });
+
+        socket.on(`executeDockerCommand`, async (containerName, command, callback) => {
+            try {
+                let output = await dockerManager.executeCommand(containerName, command);
+                await callback({ code: 200, output: output });
+            } catch (error) {
+                console.error(error);
+                await callback({ code: 500, message: `Error executing command: ${error}` });
+            }
+        });
+
+        socket.on(`startCommandSession`, async (containerName, command, callback) => {
+            let sessionId = `${util.cookieGenerator.lettersAndNumbers(15)}${new Date().getTime()}${util.cookieGenerator.lettersAndNumbers(15)}`;
+            let session = await dockerManager.startCommandSession(containerName, command);
+            commandSessions[sessionId] = session;
+            console.log(session);
+            await callback(sessionId);
+        });
+
+        socket.on(`sendCommandSession`, async (sessionid, command, callback) => {
+            let session = commandSessions[sessionid];
+            if (session) {
+                await session.write(command);
+                let output = await session.sendCommand(command);
+                await callback(output);
+            } else {
+                await callback({ code: 404, message: `session not found` });
+            }
+        });
+
+        socket.on(`endCommandSession`, async (sessionid, callback) => {
+            let session = commandSessions[sessionid];
+            if (session) {
+                let output = await session.endSession();
+                await callback(output);
+            } else {
+                await callback({ code: 404, message: `session not found` });
+            }
+        });
+
     },
     connect: async () => {
         socket.open();

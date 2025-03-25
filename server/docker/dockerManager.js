@@ -1,5 +1,6 @@
 var util, self, docker, config;
-const { Docker } = require('node-docker-api');
+const Docker = require('dockerode');
+const containerExec = require('dockerode-utils').containerExec;
 
 exports.manager = {
     init: async (scripts) => {
@@ -7,30 +8,30 @@ exports.manager = {
         config = scripts.config;
         self = this.manager;
 
-        docker = new Docker();
+        docker = new Docker({ socketPath: process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock' });
     },
     getList: async () => {
-        let containers = await docker.container.list();
+        let containers = await docker.listContainers();
         return containers;
     },
     getContainer: async (containername) => {
         try {
-            let containers = await docker.container.list({ all: true });
+            let containers = await docker.listContainers({ all: true });
             for (let c of containers) {
-                if (c.data.Labels[`com.docker.compose.service`] == containername) {
-                    return { code: 200, message: `container found`, container: c };
+                if (c.Labels[`com.docker.compose.service`] == containername) {
+                    return { code: 200, message: `container found`, container: docker.getContainer(c.Id) };
                 }
 
-                for (let name of c.data.Names) {
+                for (let name of c.Names) {
                     if (name.includes(containername)) {
-                        return { code: 200, message: `container found`, container: c };
+                        return { code: 200, message: `container found`, container: docker.getContainer(c.Id) };
                     }
                 }
             }
             return { code: 1, message: `container not found`, container: null };
         } catch (e) {
-            console.error(`[dockerManager.js] : [getContainer()] Docker is not avalible on the server`);
-            return { code: 2, message: `docker is not avalible on this server at the moment`, container: null };
+            console.error(`[dockerManager.js] : [getContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },
     doesContainerExist: async (containername) => {
@@ -41,7 +42,7 @@ exports.manager = {
         let con = await self.getContainer(containername);
         if (con) {
             if (con.code == 200) {
-                let action = await con.stop().then(con => con.delete()).then(() => {
+                let action = await con.container.stop().then(() => con.container.remove()).then(() => {
                     return { code: 200, message: `container deleted` };
                 }).catch(e => { return { code: 91, message: `Container failed to be stopped then deleted;`, error: e }; });
                 return action;
@@ -49,7 +50,7 @@ exports.manager = {
                 return { code: 93, message: `Container not found for deleteContainer(${containername})`, failedCall: con };
             }
         } else {
-            return { code: 92, message: `Failed to run container list durring delete Container(${containername})` };
+            return { code: 92, message: `Failed to run container list during delete Container(${containername})` };
         }
     },
     getContainerStatus: async (containername) => {
@@ -58,49 +59,82 @@ exports.manager = {
             if (con.code == 200) {
                 let container = con.container;
                 if (container) {
-                    let status = await container.status();
+                    let status = await container.inspect();
                     if (status) {
-                        return {code: 200, status: status};
-                    }else{
-                        return {code: 94, message: `Unable to fetch container status`};
+                        return { code: 200, status: status };
+                    } else {
+                        return { code: 94, message: `Unable to fetch container status` };
                     }
-                }else{
+                } else {
                     return { code: 93, message: `Container not found for getContainerStatus: ${containername}`, failedCall: con };
                 }
             }
         } else {
-            return { code: 92, message: `Failed to run container list durring getContainerStatus(${containername})` };
+            return { code: 92, message: `Failed to run container list during getContainerStatus(${containername})` };
         }
     },
     createContainer: async (containerConfig) => {
         if (!docker) {
-            return {code: 502, message: `docker is not avalible on this server at the moment`, container: null};
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
 
         if (await self.doesContainerExist(containerConfig.name)) {
-            return {code: 409, message: `container already exists`, container: null};
+            return { code: 409, message: `container already exists`, container: null };
         }
 
-        let container = await docker.container.create(containerConfig).then(con => con.start())
+        let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
         return container;
     },
     getLogs: async (containername) => {
         if (!docker) {
-            return {code: 502, message: `docker is not avalible on this server at the moment`, container: null};
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
 
         if (!await self.doesContainerExist(containername)) {
-            return {code: 404, message: `container does not exist`, container: null};
+            return { code: 404, message: `container does not exist`, container: null };
         }
 
         let con = await self.getContainer(containername);
-        let logs = await con.container.logs({ follow: true, stdout: true, stderr: true });
-        return {code: 200, message: `Logs is in the Logs object`, logs: logs};
+        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+
+        return { code: 200, message: `Logs are in the logs object`, logs: logs.toString() };
     },
     getContainers: async () => {
-        let containers = await docker.container.list({ all: true });
+        let containers = await docker.listContainers({ all: true });
         return containers;
-    }
+    },
+    executeCommand: async (containername, command) => {
+        if (!docker) {
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        }
+
+        if (!await self.doesContainerExist(containername)) {
+            return { code: 404, message: `container does not exist`, container: null };
+        }
+
+        let con = await self.getContainer(containername);
+        let status = await self.getContainerStatus(containername);
+
+        if (status.code !== 200 || !status.status.State.Running) {
+            return { code: 400, message: `container is not running`, container: null };
+        }
+
+        const output = await containerExec(con.container, command.split(` `));
+        return { code: 200, message: `Command executed`, result: output.toString() };
+    },
+    startCommandSession: async (containername) => {
+        if (!docker) {
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        }
+
+        if (!await self.doesContainerExist(containername)) {
+            return { code: 404, message: `container does not exist`, container: null };
+        }
+
+        let con = await self.getContainer(containername);
+        let exec = await con.container.exec({ Cmd: [`-i rcon-cli`], AttachStdout: true, AttachStderr: true });
+        return { code: 200, message: `Command session started`, session: exec };
+    },
 }

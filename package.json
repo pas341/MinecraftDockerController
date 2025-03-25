@@ -9,10 +9,12 @@
   "author": "pas341",
   "license": "ISC",
   "dependencies": {
+    "dockerode": "^4.0.4",
+    "dockerode-utils": "^0.0.7",
     "mysql": "^2.18.1",
     "node-docker-api": "^1.1.22",
     "node-machine-id": "^1.1.12",
-    "socket.io-client": "^4.8.1",
-    "rcon-client": "^4.2.5"
+    "rcon-client": "^4.2.5",
+    "socket.io-client": "^4.8.1"
   }
 }

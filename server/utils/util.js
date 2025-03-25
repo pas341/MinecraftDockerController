@@ -165,6 +165,14 @@ var c = {
 	sleep: async function (millis) {
 		return new Promise(resolve => setTimeout(resolve, millis));
 	},
+	streamToString: (stream) =>  {
+		return new Promise((resolve, reject) => {
+			let chunks = [];
+			stream.on('data', (chunk) => chunks.push(chunk));
+			stream.on('end', () => resolve(Buffer.concat(chunks).toString()));
+			stream.on('error', (err) => reject(err));
+		});
+	},
 	string: {
 		slugify: function (s) {
 			s = s.replace(/[^\w\s#-]/gi, '').replace(/ /g, '_').replace(/-/g, '_').replace(/_+(?=)/g, '_');
