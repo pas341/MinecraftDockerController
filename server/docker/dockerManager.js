@@ -86,8 +86,8 @@ exports.manager = {
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
         return container;
-        },
-        getLogs: async (containername) => {
+    },
+    getLogs: async (containername) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -104,8 +104,8 @@ exports.manager = {
         let last250Lines = logLines.slice(-250).join('\n');
 
         return { code: 200, message: `Logs are in the logs object`, logs: last250Lines };
-        },
-        clearLogs: async (containername) => {
+    },
+    getLogsPaginated: async (containername, page, perPage) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -116,7 +116,43 @@ exports.manager = {
 
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
-        
+
+        // Split logs into lines
+        let logLines = logs.toString().split('\n');
+
+        // Calculate pagination
+        let totalLines = logLines.length;
+        let totalPages = Math.ceil(totalLines / perPage);
+        let start = (page - 1) * perPage;
+        let end = start + perPage;
+
+        // Get the requested page of logs
+        let paginatedLogs = logLines.slice(start, end).join('\n');
+
+        return {
+            code: 200,
+            message: `Logs are in the logs object`,
+            logs: paginatedLogs,
+            pagination: {
+            currentPage: page,
+            perPage: perPage,
+            totalPages: totalPages,
+            totalLines: totalLines
+            }
+        };
+    },
+    clearLogs: async (containername) => {
+        if (!docker) {
+            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        }
+
+        if (!await self.doesContainerExist(containername)) {
+            return { code: 404, message: `container does not exist`, container: null };
+        }
+
+        let con = await self.getContainer(containername);
+        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+
         return { code: 200, message: `Logs are in the logs object`, logs: logs.toString() };
     },
     getContainers: async () => {

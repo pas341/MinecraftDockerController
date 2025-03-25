@@ -258,6 +258,11 @@ exports.so = {
             await callback(logs);
         });
 
+        socket.on(`getlogspage`, async (containername, page, perPage, callback) => {
+            let logs = await dockerManager.getLogsPaginated(containername, page, perPage);
+            await callback(logs);
+        });
+
         socket.on(`getcontainers`, async (callback) => {
             let containers = await dockerManager.getContainers();
             let output = [];
