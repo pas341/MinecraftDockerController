@@ -104,8 +104,8 @@ exports.manager = {
         let last250Lines = logLines.slice(-250).join('\n');
 
         return { code: 200, message: `Logs are in the logs object`, logs: last250Lines.split('\n').reverse().join('\n') };
-        },
-        getLogsPaginated: async (containername, page, perPage) => {
+    },
+    getLogsPaginated: async (containername, page, perPage) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -134,14 +134,14 @@ exports.manager = {
             message: `Logs are in the logs object`,
             logs: paginatedLogs,
             pagination: {
-            currentPage: page,
-            perPage: perPage,
-            totalPages: totalPages,
-            totalLines: totalLines
+                currentPage: page,
+                perPage: perPage,
+                totalPages: totalPages,
+                totalLines: totalLines
             }
         };
-        },
-        clearLogs: async (containername) => {
+    },
+    clearLogs: async (containername) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
