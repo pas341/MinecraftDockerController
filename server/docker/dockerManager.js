@@ -128,6 +128,8 @@ exports.manager = {
 
         // Get the requested page of logs
         let paginatedLogs = logLines.slice(start, end).join('\n');
+        // Reverse the lines back to their original order
+        paginatedLogs = paginatedLogs.split('\n').reverse().join('\n');
 
         return {
             code: 200,
