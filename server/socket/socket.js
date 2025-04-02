@@ -213,7 +213,7 @@ exports.so = {
                 if (containerRequest.code == 200) {
                     console.log(`Stopping: ${containername}`);
                     let container = containerRequest.container;
-                    await container.stop().then(con => con.delete()).then(async () => { await callback({ code: 200, message: `container stopped and deleted` }) });
+                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and deleted` }) });
                     console.log(`${containername}: stopped and deleted`);
                 }
             } catch (e) {
@@ -342,8 +342,14 @@ exports.so = {
                 },
                 os: {
                     name: systemUtils.getOperatingSystem(),
+                    platform: systemUtils.getOsPlatform(),
                     version: systemUtils.getOsRelease(),
-                }
+                    arch: systemUtils.getOsArch(),
+                },
+                memory: {
+                    total: systemUtils.getMaxRam(),
+                    free: systemUtils.getFreeRam(),
+                },
             };
             await callback(systemInfo);
         });

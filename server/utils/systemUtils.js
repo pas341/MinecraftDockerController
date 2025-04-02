@@ -15,6 +15,12 @@ exports.systemUtils = {
     getOsRelease: () => {
         return os.release();
     },
+    getOsPlatform: () => {
+        return os.platform();
+    },
+    getOsArch: () => {
+        return os.arch();
+    },
     getCpus: () => {
         return os.cpus();
     },
@@ -23,5 +29,14 @@ exports.systemUtils = {
     },
     getCpuModel: () => {
         return os.cpus()[0].model;
+    },
+    getCpuSpeed: () => {
+        return os.cpus()[0].speed;
+    },
+    getMaxRam: () => {
+        return os.totalmem();
+    },
+    getFreeRam: () => {
+        return os.freemem();
     },
 }
