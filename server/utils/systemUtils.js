@@ -9,7 +9,7 @@ exports.systemUtils = {
         config = scripts.config;
     },
     getMaxRam: () => {
-        return Math.floor(os.totalmem() / (1024 ** 3));
+        return (os.totalmem() / (1024 ** 3)).toFixed(2);
     },
     getOperatingSystem: () => {
         return os.type();
