@@ -182,6 +182,8 @@ exports.so = {
                     await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
             }
             await callback({ code: 200, message: `Server suspended` });
+            preventPM2Restart();
+            process.exit(-1);
         });
 
         socket.on("disconnect", async (reason) => {
