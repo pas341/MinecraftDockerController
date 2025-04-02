@@ -1,12 +1,12 @@
 var socket, identity, config, scripts, util, self, dockerManager, systemUtils;
 const io = require(`socket.io-client`);
-const machineId = require(`node-machine-id`).machineId;
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 const fs = require(`fs`);
 const { exec, execSync } = require('child_process');
-const { version } = require('os');
+const path = require('path');
 
 const commandSessions = {};
+const listeners = [];
 
 let suspended = false;
 
@@ -116,26 +116,24 @@ exports.so = {
         self.registerListeners();
     },
     registerListeners: async () => {
-        socket.on(`connect`, async () => {
-            const machineid = machineIdSync(true);
-            socket.emit(`serverregister`, { setup: config.setup, machineid: machineid, license: config.license.key }, async (response) => {
-                if (response.code == 201) {
-                    if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-                        socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`), machineid: machineid });
-                    } else if (response.code == 200) {
-                        socket.emit(`identify`, { identity: response.token, machineid: machineid });
-                    } else {
-                        console.log(`Server Token missing for server please contact the tool developer`);
-                        socket.disconnect(true);
-                        process.exit(-1);
-                    }
-                } else {
-                    socket.disconnect(true);
-                    process.exit(-1);
+        try {
+            const eventsPath = path.join(__dirname, 'events');
+            const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+            
+            for (const file of eventFiles) {
+                console.log(`Loading event file: ${file}`);
+                const event = require(path.join(eventsPath, file)).event;
+                if (event && typeof event.register === 'function') {
+                    event.init(scripts, socket);
+                    await event.register(socket);
+                    listeners.push(file.replace('.js', ''));
+                }else{
+                    console.log(`No register function found in event file: ${file}`);
                 }
-            });
-            console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server`);
-        });
+            }
+        }catch (error) {
+            console.error(`Error loading event files: ${error}`);
+        }
 
         socket.on("disconnect", (reason) => {
             disconnected = 1;
@@ -147,155 +145,8 @@ exports.so = {
             console.error(error);
         });
 
-        socket.on(`startcontainer`, async (containername, callback) => {
-            try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Starting: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.start().then(async () => { await callback({ code: 200, message: `container started` }) });
-                    console.log(`${containername}: started`);
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
-            }
-        });
-
-        socket.on("deploycontainer", async (containerConfig, callback) => {
-            try {
-                console.log(`deploy: ${containerConfig.name}`);
-                let container = await dockerManager.createContainer(containerConfig);
-                await callback({ code: container.code, message: container.message });
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container deployment` });
-            }
-        });
-
         socket.on(`containerexists`, async (containername, callback) => {
             await callback(await dockerManager.doesContainerExist(containername));
-        });
-
-        socket.on(`stopcontainer`, async (containername, callback) => {
-            try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.stop().then(async () => { await callback({ code: 200, message: `container stopped` }) });
-                    console.log(`${containername}: stopped`);
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
-            }
-        });
-
-        socket.on(`deletecontainer`, async (containername, callback) => {
-            try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Deleting: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.remove().then(async () => { await callback({ code: 200, message: `container deleted` }) });
-                    console.log(`${containername}: deleted`);
-                }else{
-                    await callback({ code: 12, message: `cannot find container by name: ${containername}` });
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
-            }
-        });
-
-        socket.on(`stopanddeletecontainer`, async (containername, callback) => {
-            try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and deleted` }) });
-                    console.log(`${containername}: stopped and deleted`);
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
-            }
-        });
-
-        socket.on(`restartcontainer`, async (containername, callback) => {
-            try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.restart().then(async () => { await callback({ code: 200, message: `container restarting` }) });
-                    console.log(`${containername}: restarted`);
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error durring container restart` });
-            }
-        });
-
-        socket.on(`containerstatus`, async (containername, callback) => {
-            try {
-                let statusRequest = await dockerManager.getContainerStatus(containername);
-                if (statusRequest) {
-                    if (statusRequest.code == 200) {
-                        await callback({ code: 200, status: statusRequest.status });
-                    } else {
-                        await callback({ code: 9000, message: `error while getting container status` });
-                    }
-                } else {
-                    await callback({ code: 9001, message: `error while getting container status` });
-                }
-            } catch (e) {
-                console.error(e);
-                await callback({ code: 5000, message: `error while getting container status` });
-            }
-        });
-
-        socket.on(`getlogs`, async (containername, callback) => {
-            let logs = await dockerManager.getLogs(containername);
-            await callback(logs);
-        });
-
-        socket.on(`getlogspage`, async (containername, page, perPage, callback) => {
-            let logs = await dockerManager.getLogsPaginated(containername, page, perPage);
-            await callback(logs);
-        });
-
-        socket.on(`getcontainers`, async (callback) => {
-            let containers = await dockerManager.getContainers();
-            let output = [];
-            
-
-            for (let container of containers) {
-                let names = container.Names;
-                let state = container.State;
-                let status = container.Status;
-                let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
-                output.push(obj);
-            }
-
-            await callback(output);
-        });
-
-        socket.on(`getrunningcontainers`, async (callback) => {
-            let containers = await dockerManager.getRunningContainers();
-            let output = [];
-
-            for (let container of containers) {
-                let names = container.Names;
-                let state = container.State;
-                let status = container.Status;
-                let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
-                output.push(obj);
-            }
-
-            await callback(output);
         });
 
         socket.on(`message`, async (message) => {
@@ -320,19 +171,8 @@ exports.so = {
             }
         });
 
-        socket.on(`getsupportedpackets`, async (callback) => {
-            let output = ["startcontainer", "stopcontainer", "deletecontainer", "stopanddeletecontainer", "restartcontainer", "containerstatus", "getlogs", "getcontainers", "message", "popup"];
-            await callback({ code: 200, packets: output });
-        });
-
-        socket.on(`executeDockerCommand`, async (containerName, command, callback) => {
-            try {
-                let output = await dockerManager.executeCommand(containerName, command);
-                await callback({ code: 200, output: output });
-            } catch (error) {
-                console.error(error);
-                await callback({ code: 500, message: `Error executing command: ${error}` });
-            }
+        socket.on(`getsupportedpackets`, async (callback) => {;
+            await callback({ code: 200, packets: listeners });
         });
 
         socket.on(`suspended`, async (callback) => {
@@ -342,30 +182,6 @@ exports.so = {
                     await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
             }
             await callback({ code: 200, message: `Server suspended` });
-        });
-
-
-
-
-
-        socket.on(`systemInfo`, async (callback) => {
-            let systemInfo = {
-                cpu: {
-                    model: systemUtils.getCpuModel(),
-                    cpuCount: systemUtils.getCpuCount(),
-                },
-                os: {
-                    name: systemUtils.getOperatingSystem(),
-                    platform: systemUtils.getOsPlatform(),
-                    version: systemUtils.getOsRelease(),
-                    arch: systemUtils.getOsArch(),
-                },
-                memory: {
-                    total: systemUtils.getMaxRam(),
-                    free: systemUtils.getFreeRam(),
-                },
-            };
-            await callback(systemInfo);
         });
 
         socket.on("disconnect", async (reason) => {

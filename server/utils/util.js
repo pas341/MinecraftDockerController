@@ -131,37 +131,6 @@ var c = {
 
 		return o;
 	},
-	getDiscordNickname: async (user) => {
-		let name;
-		if (!name) {
-			name = user.globalName;
-		}
-
-		if (!name) {
-			name = user.username;
-		}
-
-		if (!name) {
-			scripts.logger.error(`No Discord name found for discorduid: ${user.id}`);
-			return null;
-		} else {
-			return name;
-		}
-	},
-	getDBUserByDiscordUser: async (query, user) => {
-		let dbuser = await new Promise((resolve) => {
-            query(`SELECT * FROM \`users\` WHERE \`duid\` = ?`, [user.id], async (error, results, fields) => {
-                if (error) {
-                    console.error(error);
-                    resolve(null);
-                } else {
-                    resolve(results.length ? results[0] : null);
-                }
-            });
-        });
-
-		return dbuser;
-	},
 	sleep: async function (millis) {
 		return new Promise(resolve => setTimeout(resolve, millis));
 	},
