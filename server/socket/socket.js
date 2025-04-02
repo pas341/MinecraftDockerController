@@ -4,6 +4,7 @@ const machineId = require(`node-machine-id`).machineId;
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 const fs = require(`fs`);
 const { exec, execSync } = require('child_process');
+const { version } = require('os');
 
 const commandSessions = {};
 
@@ -351,6 +352,7 @@ exports.so = {
                 cpu: systemUtils.getCpus(),
                 os: {
                     name: systemUtils.getOperatingSystem(),
+                    version: systemUtils.getOsRelease(),
                 }
             };
             await callback(systemInfo);
