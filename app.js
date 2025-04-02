@@ -3,6 +3,7 @@ const config = require(`${__dirname}/server/config/config.json`);
 const socket = require(`./server/socket/socket.js`).so;
 const util = require(`./server/utils/util.js`).util;
 const dockerManager = require(`./server/docker/dockerManager.js`).manager;
+const systemUtils = require(`./server/utils/systemUtils.js`).systemUtils;
 const myArgs = process.argv.slice(2);
 
 
@@ -16,6 +17,9 @@ const scripts = {
 	},
 	managers: {
 		docker: dockerManager,
+	},
+	utils: {
+		system: systemUtils,
 	},
 	util: util,
 };
@@ -34,6 +38,7 @@ const interactions = {
 
 	// establish external service connections/interactions
 	await dockerManager.init(scripts);
+	await systemUtils.init(scripts);
 	await interactions.socketConnect(scripts);
 
 	// getting database info

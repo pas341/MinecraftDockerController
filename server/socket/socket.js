@@ -1,4 +1,4 @@
-var socket, identity, config, scripts, util, self, dockerManager;
+var socket, identity, config, scripts, util, self, dockerManager, systemUtils;
 const io = require(`socket.io-client`);
 const machineId = require(`node-machine-id`).machineId;
 const machineIdSync = require(`node-machine-id`).machineIdSync;
@@ -102,6 +102,7 @@ exports.so = {
         self = this.so;
         scripts = s;
         config = s.config.main;
+        systemUtils = s.utils.system;
         if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
             identity = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
         }
@@ -345,6 +346,17 @@ exports.so = {
             }
         });
 
+        socket.on(`systemInfo`, async (callback) => {
+            let systemInfo = {
+                cpu: systemUtils.getCpus(),
+                ram: systemUtils.getMaxRam(),
+                os: {
+                    name: systemUtils.getOperatingSystem(),
+                }
+            };
+            await callback(systemInfo);
+        });
+
         socket.on("disconnect", async (reason) => {
             console.log(`Socket disconnected: ${reason}`);
             let reconnectInterval = setInterval(() => {
@@ -357,6 +369,7 @@ exports.so = {
             }
             }, 5000); // Retry every 5 seconds
         });
+
 
     },
     connect: async () => {
