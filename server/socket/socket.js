@@ -349,7 +349,10 @@ exports.so = {
 
         socket.on(`systemInfo`, async (callback) => {
             let systemInfo = {
-                cpu: systemUtils.getCpus(),
+                cpu: {
+                    physicalcores: systemUtils.getPhysicalCores(),
+                    cpuCount: systemUtils.getCpuCount(),
+                },
                 os: {
                     name: systemUtils.getOperatingSystem(),
                     version: systemUtils.getOsRelease(),
