@@ -21,7 +21,7 @@ exports.systemUtils = {
     getCpuCount: () => {
         return os.cpus().length;
     },
-    getPhysicalCores: () => {
-        return os.cpus().filter(cpu => !cpu.model.includes('HT')).length;
-    }
+    getCpuModel: () => {
+        return os.cpus()[0].model;
+    },
 }
