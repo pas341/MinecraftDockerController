@@ -349,7 +349,6 @@ exports.so = {
         socket.on(`systemInfo`, async (callback) => {
             let systemInfo = {
                 cpu: systemUtils.getCpus(),
-                ram: systemUtils.getMaxRam(),
                 os: {
                     name: systemUtils.getOperatingSystem(),
                 }
