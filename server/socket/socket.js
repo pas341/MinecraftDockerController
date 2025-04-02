@@ -8,6 +8,8 @@ const { version } = require('os');
 
 const commandSessions = {};
 
+let suspended = false;
+
 function isWindows() {
     return process.platform === 'win32';
 }
@@ -334,12 +336,15 @@ exports.so = {
         });
 
         socket.on(`suspended`, async (callback) => {
+            suspended = true;
             let containers = await dockerManager.getContainers();
             for (let container of containers) {
                     await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
             }
             await callback({ code: 200, message: `Server suspended` });
         });
+
+
 
 
 
@@ -365,6 +370,10 @@ exports.so = {
 
         socket.on("disconnect", async (reason) => {
             console.log(`Socket disconnected: ${reason}`);
+            if (suspended) {
+                console.log(`Server is suspended, not attempting to reconnect.`);
+                return;
+            }
             let reconnectInterval = setInterval(() => {
             if (!socket.connected) {
                 console.log("Attempting to reconnect...");
@@ -400,6 +409,16 @@ exports.so = {
                     showPopupAndWait("Invalid License", "License Error");
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
+                    preventPM2Restart();
+                } else if (response.code == 8542) {
+                    suspended = true;
+                    showPopupAndWait("Server Suspended from main managment interface", "Server Error");
+                    console.log(response.message);
+                    console.log(`-------------------------------------------`);
+                    preventPM2Restart();
+                }else if (response.code == 4250) {
+                    showPopupAndWait(`Invalid Server Token`, "Server Error");
+                    console.log(`Server Token missing for server please contact the tool developer`);
                     preventPM2Restart();
                 } else {
                     console.log(response);
