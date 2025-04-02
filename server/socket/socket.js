@@ -333,6 +333,15 @@ exports.so = {
             }
         });
 
+        socket.on(`suspended`, async (callback) => {
+            let containers = await dockerManager.getContainers();
+            for (let container of containers) {
+                    await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
+            }
+            await callback({ code: 200, message: `Server suspended` });
+        });
+
+
 
         socket.on(`systemInfo`, async (callback) => {
             let systemInfo = {
