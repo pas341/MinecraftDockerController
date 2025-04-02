@@ -281,6 +281,21 @@ exports.so = {
             await callback(output);
         });
 
+        socket.on(`getrunningcontainers`, async (callback) => {
+            let containers = await dockerManager.getRunningContainers();
+            let output = [];
+
+            for (let container of containers) {
+                let names = container.Names;
+                let state = container.State;
+                let status = container.Status;
+                let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
+                output.push(obj);
+            }
+
+            await callback(output);
+        });
+
         socket.on(`message`, async (message) => {
             showPopupMessage(message, "Message from Server");
         });
@@ -318,34 +333,6 @@ exports.so = {
             }
         });
 
-        socket.on(`startCommandSession`, async (containerName, command, callback) => {
-            let sessionId = `${util.cookieGenerator.lettersAndNumbers(15)}${new Date().getTime()}${util.cookieGenerator.lettersAndNumbers(15)}`;
-            let session = await dockerManager.startCommandSession(containerName, command);
-            commandSessions[sessionId] = session;
-            console.log(session);
-            await callback(sessionId);
-        });
-
-        socket.on(`sendCommandSession`, async (sessionid, command, callback) => {
-            let session = commandSessions[sessionid];
-            if (session) {
-                await session.write(command);
-                let output = await session.sendCommand(command);
-                await callback(output);
-            } else {
-                await callback({ code: 404, message: `session not found` });
-            }
-        });
-
-        socket.on(`endCommandSession`, async (sessionid, callback) => {
-            let session = commandSessions[sessionid];
-            if (session) {
-                let output = await session.endSession();
-                await callback(output);
-            } else {
-                await callback({ code: 404, message: `session not found` });
-            }
-        });
 
         socket.on(`systemInfo`, async (callback) => {
             let systemInfo = {

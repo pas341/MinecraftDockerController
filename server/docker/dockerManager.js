@@ -34,6 +34,10 @@ exports.manager = {
             return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },
+    getRunningContainers: async () => {
+        let containers = await docker.listContainers();
+        return containers;
+    },
     doesContainerExist: async (containername) => {
         let containerRequest = await self.getContainer(containername);
         return containerRequest.container != null;
@@ -104,8 +108,8 @@ exports.manager = {
         let last250Lines = logLines.slice(-250).join('\n');
 
         return { code: 200, message: `Logs are in the logs object`, logs: last250Lines.split('\n').reverse().join('\n') };
-        },
-        getLogsPaginated: async (containername, page, perPage) => {
+    },
+    getLogsPaginated: async (containername, page, perPage) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -115,10 +119,11 @@ exports.manager = {
         }
 
         let con = await self.getContainer(containername);
-        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+        let params = { stdout: true, stderr: true, follow: false };
+        let logs = await con.container.logs(params);
 
         // Split logs into lines and reverse them so latest logs are first
-        let logLines = logs.toString().split('\n').reverse();
+        let logLines = logs.toString(`utf-8`).split('\n').reverse();
 
         // Calculate pagination
         let totalLines = logLines.length;
@@ -136,14 +141,14 @@ exports.manager = {
             message: `Logs are in the logs object`,
             logs: paginatedLogs,
             pagination: {
-            currentPage: page,
-            perPage: perPage,
-            totalPages: totalPages,
-            totalLines: totalLines
+                currentPage: page,
+                perPage: perPage,
+                totalPages: totalPages,
+                totalLines: totalLines
             }
         };
-        },
-        clearLogs: async (containername) => {
+    },
+    clearLogs: async (containername) => {
         if (!docker) {
             return { code: 502, message: `docker is not available on this server at the moment`, container: null };
         }
@@ -155,7 +160,7 @@ exports.manager = {
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
 
-        return { code: 200, message: `Logs are in the logs object`, logs: logs.toString() };
+        return { code: 200, message: `Logs are in the logs object`, logs: logs.toString(`utf-8`) };
     },
     getContainers: async () => {
         let containers = await docker.listContainers({ all: true });
@@ -178,19 +183,6 @@ exports.manager = {
         }
 
         const output = await containerExec(con.container, command.split(` `));
-        return { code: 200, message: `Command executed`, result: output.toString() };
-    },
-    startCommandSession: async (containername) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
-        }
-
-        if (!await self.doesContainerExist(containername)) {
-            return { code: 404, message: `container does not exist`, container: null };
-        }
-
-        let con = await self.getContainer(containername);
-        let exec = await con.container.exec({ Cmd: [`-i rcon-cli`], AttachStdout: true, AttachStderr: true });
-        return { code: 200, message: `Command session started`, session: exec };
-    },
+        return { code: 200, message: `Command executed`, result: output.toString(`utf-8`) };
+    }
 }
