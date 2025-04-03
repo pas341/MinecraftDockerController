@@ -99,6 +99,7 @@ exports.manager = {
         if (!await self.doesContainerExist(containername)) {
             return { code: 404, message: `container does not exist`, container: null };
         }
+        
 
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
@@ -121,7 +122,6 @@ exports.manager = {
         let con = await self.getContainer(containername);
         let params = { stdout: true, stderr: true, follow: false };
         let logs = await con.container.logs(params);
-
         // Split logs into lines and reverse them so latest logs are first
         let logLines = logs.toString(`utf-8`).split('\n').reverse();
 

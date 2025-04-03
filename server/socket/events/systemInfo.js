@@ -4,6 +4,7 @@ const fs = require('fs');
 
 exports.event = {
     init: async (scripts, socket) => {
+        console.log("Initializing systemInfo event"); // Debugging log
         self = this.event;
         util = scripts.util;
         config = scripts.config.main;
@@ -14,6 +15,7 @@ exports.event = {
     },
     register: async (socket) => {
         socket.on(`systemInfo`, async (callback) => {
+            console.log("systemInfo event triggered"); // Debugging log
             let systemInfo = {
                 cpu: {
                     model: systemUtils.getCpuModel(),

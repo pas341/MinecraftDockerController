@@ -121,18 +121,20 @@ exports.so = {
             const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
             
             for (const file of eventFiles) {
-                console.log(`Loading event file: ${file}`);
+                //console.log(`Loading event file: ${file}`); // Debugging log
                 const event = require(path.join(eventsPath, file)).event;
                 if (event && typeof event.register === 'function') {
-                    event.init(scripts, socket);
+                    //console.log(`Initializing event: ${file}`); // Debugging log
+                    await event.init(scripts, socket);
                     await event.register(socket);
+                    //console.log(`Registered event: ${file}`); // Debugging log
                     listeners.push(file.replace('.js', ''));
-                }else{
-                    console.log(`No register function found in event file: ${file}`);
+                } else {
+                    //console.log(`No register function found in event file: ${file}`); // Debugging log
                 }
             }
-        }catch (error) {
-            console.error(`Error loading event files: ${error}`);
+        } catch (error) {
+            console.error(`Error loading event files: ${error}`); // Debugging log
         }
 
         socket.on("disconnect", (reason) => {
