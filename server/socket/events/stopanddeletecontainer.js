@@ -13,14 +13,14 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        socket.on(`stopanddeletecontainer`, async (containername, callback) => {
+        socket.on(`stopandremovecontainer`, async (containername, callback) => {
             try {
                 let containerRequest = await dockerManager.getContainer(containername);
                 if (containerRequest.code == 200) {
                     console.log(`Stopping: ${containername}`);
                     let container = containerRequest.container;
-                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and deleted` }) });
-                    console.log(`${containername}: stopped and deleted`);
+                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and removed` }) });
+                    console.log(`${containername}: stopped and removed`);
                 }
             } catch (e) {
                 console.error(e);
