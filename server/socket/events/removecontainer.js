@@ -13,14 +13,14 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        socket.on(`deletecontainer`, async (containername, callback) => {
+        socket.on(`removecontainer`, async (containername, callback) => {
             try {
                 let containerRequest = await dockerManager.getContainer(containername);
                 if (containerRequest.code == 200) {
                     console.log(`Deleting: ${containername}`);
                     let container = containerRequest.container;
-                    await container.remove().then(async () => { await callback({ code: 200, message: `container deleted` }) });
-                    console.log(`${containername}: deleted`);
+                    await container.remove().then(async () => { await callback({ code: 200, message: `container removed` }) });
+                    console.log(`${containername}: removed`);
                 }else{
                     await callback({ code: 12, message: `cannot find container by name: ${containername}` });
                 }
