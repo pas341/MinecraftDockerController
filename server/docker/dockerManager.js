@@ -11,8 +11,14 @@ exports.manager = {
         docker = new Docker({ socketPath: process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock' });
     },
     getList: async () => {
-        let containers = await docker.listContainers();
-        return containers;
+        try {
+
+            let containers = await docker.listContainers();
+            return containers;
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getList()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
+        };
     },
     getContainer: async (containername) => {
         try {
