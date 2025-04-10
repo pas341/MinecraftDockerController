@@ -256,6 +256,9 @@ exports.so = {
                 const machineid = machineIdSync(true);
                 if (response.code == 200) { // valid first register
                     if (response.token) {
+                        if (!fs.existsSync(`${process.cwd()}/data`)) {
+                            fs.mkdirSync(`${process.cwd()}/data`);
+                        }
                         fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
                     }
                 } else if (response.code == 201) { // valid allready registered
