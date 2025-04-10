@@ -88,7 +88,11 @@ exports.manager = {
 
         let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
-            .catch(e => { return { code: 1, message: `Container failed to be started or created`, error: e }; });
+            .catch(e => {
+                console.error(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
+                console.error(e);
+                return { code: 1, message: `Container failed to be started or created`, error: e };
+            });
         return container;
     },
     getLogs: async (containername) => {
@@ -99,7 +103,7 @@ exports.manager = {
         if (!await self.doesContainerExist(containername)) {
             return { code: 404, message: `container does not exist`, container: null };
         }
-        
+
 
         let con = await self.getContainer(containername);
         let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
