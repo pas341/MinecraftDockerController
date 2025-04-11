@@ -113,12 +113,10 @@ async function handleSocketReady(socket, identity) {
         let event = JSON.parse(data.toString());
         let status = event.status;
 
-        console.log(`Event: ${event.status}`);
-
-        if (status === `exec_die` || status === `exec_create`) {
+        if (status === `exec_die` || status === `exec_create` || status === `exec_start`) {
             return;
         }
-        
+
         if (!event.Actor) {
             console.log(event);
             return;
