@@ -100,6 +100,61 @@ function runCommand(command) {
     });
 }
 
+async function handleSocketReady(socket, identity) {
+    let systemSatatus = await systemUtils.getSystemStatus();
+    socket.emit(`ready`, { identity: identity, systemStatus: systemSatatus });
+    let docker = await dockerManager.getDocker();
+    if (docker.code === 200) {
+        docker = docker.docker;
+    }
+
+    let stream = await docker.getEvents({ filters: { type: ['container'] } });
+    stream.on('data', async (data) => {
+        let event = JSON.parse(data.toString());
+        let status = event.status;
+
+        console.log(`Event: ${event.status}`);
+
+        if (status === `exec_die` || status === `exec_create`) {
+            return;
+        }
+        
+        if (!event.Actor) {
+            console.log(event);
+            return;
+        }
+        if (!event.Actor.Attributes) {
+            return;
+        }
+
+
+        if (!event.Actor.Attributes.name) {
+            return;
+        }
+
+
+        let containerName = event.Actor.Attributes.name;
+        socket.emit(`containerUpdated`, {server: identity, event: event.Action, container: containerName });
+
+    });
+    stream.on('error', (error) => {
+        console.error(`Error: ${error.message}`);
+    });
+    stream.on('end', () => {
+        console.log(`Stream ended`);
+    });
+    stream.on('close', () => {
+        console.log(`Stream closed`);
+    });
+    stream.on('connect', () => {
+        console.log(`Stream connected`);
+    });
+    stream.on('disconnect', () => {
+        console.log(`Stream disconnected`);
+    });
+
+}
+
 exports.so = {
     init: async (s, socketConfig) => {
         self = this.so;
@@ -119,7 +174,7 @@ exports.so = {
         try {
             const eventsPath = path.join(__dirname, 'events');
             const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-            
+
             for (const file of eventFiles) {
                 //console.log(`Loading event file: ${file}`); // Debugging log
                 const event = require(path.join(eventsPath, file)).event;
@@ -164,16 +219,16 @@ exports.so = {
 
             if (type == 0) {
                 showInfoPopup(message, title);
-            }else if (type == 1) {
+            } else if (type == 1) {
                 showWarningPopup(message, title);
-            }else if (type == 2) {
+            } else if (type == 2) {
                 showErrorPopup(message, title);
-            }else{
+            } else {
                 showPopupMessage(message, title);
             }
         });
 
-        socket.on(`getsupportedpackets`, async (callback) => {;
+        socket.on(`getsupportedpackets`, async (callback) => {
             await callback({ code: 200, packets: listeners });
         });
 
@@ -181,7 +236,7 @@ exports.so = {
             suspended = true;
             let containers = await dockerManager.getContainers();
             for (let container of containers) {
-                    await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
+                await container.stop().then(con => con.remove()).catch(e => { console.error(`Error stopping and removing container: ${e}`); });
             }
             await callback({ code: 200, message: `Server suspended` });
             preventPM2Restart();
@@ -195,15 +250,18 @@ exports.so = {
                 return;
             }
             let reconnectInterval = setInterval(() => {
-            if (!socket.connected) {
-                console.log("Attempting to reconnect...");
-                socket.connect();
-            } else {
-                console.log("Reconnected successfully.");
-                clearInterval(reconnectInterval);
-            }
+                if (!socket.connected) {
+                    console.log("Attempting to reconnect...");
+                    socket.connect();
+                } else {
+                    console.log("Reconnected successfully.");
+                    disconnected = 0;
+                    clearInterval(reconnectInterval);
+                }
             }, 5000); // Retry every 5 seconds
         });
+
+
 
 
     },
@@ -226,8 +284,7 @@ exports.so = {
                         console.log(`Remaining virtual servers: ${response.containersavalible}`);
                     }
                     // used to tell the server is ready to send data to web interface
-                    let systemSatatus = await systemUtils.getSystemStatus();
-                    socket.emit(`ready`, { identity: identity, systemStatus: systemSatatus  });
+                    await handleSocketReady(socket, identity);
                 } else if (response.code == 4253) {
                     showPopupAndWait("Invalid License", "License Error");
                     console.log(response.message);
@@ -239,7 +296,7 @@ exports.so = {
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
-                }else if (response.code == 4250) {
+                } else if (response.code == 4250) {
                     showPopupAndWait(`Invalid Server Token`, "Server Error");
                     console.log(`Server Token missing for server please contact the tool developer`);
                     preventPM2Restart();
@@ -263,11 +320,13 @@ exports.so = {
                             fs.mkdirSync(`${process.cwd()}/data`);
                         }
                         fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
+                        identity = response.token;
                     }
                 } else if (response.code == 201) { // valid allready registered
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
                         let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
                         socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
+                        identity = token;
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);

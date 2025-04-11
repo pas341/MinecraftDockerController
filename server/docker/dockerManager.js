@@ -20,6 +20,38 @@ exports.manager = {
             return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
         };
     },
+    readEvents: async (callback) => {
+        try {
+            let stream = await docker.getEvents({ since: 0, until: 0, filters: { event: ['start', 'stop'] } });
+            stream.on('data', (data) => {
+                let event = JSON.parse(data.toString('utf8'));
+                if (event.status == 'start') {
+                    callback({ code: 200, message: `Container started`, event: event });
+                } else if (event.status == 'stop') {
+                    callback({ code: 200, message: `Container stopped`, event: event });
+                } else {
+                    callback({ code: 200, message: `Container event`, event: event });
+                }
+            });
+            stream.on('error', (err) => {
+                console.error(`[dockerManager.js] : [readEvents()] Error reading events: ${err}`);
+                callback({ code: 1, message: `Error reading events`, error: err });
+            });
+            stream.on('end', () => {
+                console.log(`[dockerManager.js] : [readEvents()] Stream ended`);
+                callback({ code: 1, message: `Stream ended` });
+            });
+        } catch (e) {
+            console.error(`[dockerManager.js] : [readEvents()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
+        }
+    },
+    getDocker: async () => {
+        if (!docker) {
+            return { code: 502, message: `docker is not available on this server at the moment`, docker: null };
+        }
+        return { code: 200, message: `docker is available`, docker: docker };
+    },
     getContainer: async (containername) => {
         try {
             let containers = await docker.listContainers({ all: true });
