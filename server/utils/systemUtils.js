@@ -44,10 +44,12 @@ exports.systemUtils = {
     },
     getSystemStatus: () => {
         return {
-            os: os.type(),
-            platform: os.platform(),
-            release: os.release(),
-            arch: os.arch(),
+            os: {
+                type: os.type(),
+                platform: os.platform(),
+                release: os.release(),
+                arch: os.arch(),
+            },
             uptime: os.uptime(),
             loadavg: os.loadavg(),
             totalmem: os.totalmem(),
