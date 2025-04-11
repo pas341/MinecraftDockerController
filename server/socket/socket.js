@@ -226,7 +226,8 @@ exports.so = {
                         console.log(`Remaining virtual servers: ${response.containersavalible}`);
                     }
                     // used to tell the server is ready to send data to web interface
-                    socket.emit(`ready`, { identity: identity });
+                    let systemSatatus = await systemUtils.getSystemStatus();
+                    socket.emit(`ready`, { identity: identity, systemStatus: systemSatatus  });
                 } else if (response.code == 4253) {
                     showPopupAndWait("Invalid License", "License Error");
                     console.log(response.message);

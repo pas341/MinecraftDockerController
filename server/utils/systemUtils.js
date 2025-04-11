@@ -39,4 +39,20 @@ exports.systemUtils = {
     getFreeRam: () => {
         return os.freemem();
     },
+    getSystemUptime: () => {
+        return os.uptime();
+    },
+    getSystemStatus: () => {
+        return {
+            os: os.type(),
+            platform: os.platform(),
+            release: os.release(),
+            arch: os.arch(),
+            uptime: os.uptime(),
+            loadavg: os.loadavg(),
+            totalmem: os.totalmem(),
+            freemem: os.freemem(),
+            cpus: os.cpus(),
+        };
+    },
 }
