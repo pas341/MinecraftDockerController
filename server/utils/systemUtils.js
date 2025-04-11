@@ -53,6 +53,11 @@ exports.systemUtils = {
             totalmem: os.totalmem(),
             freemem: os.freemem(),
             cpus: os.cpus(),
+            cpu: {
+                model: os.cpus()[0].model,
+                speed: os.cpus()[0].speed,
+                count: os.cpus().length,
+            },
         };
     },
 }
