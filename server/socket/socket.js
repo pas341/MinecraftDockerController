@@ -125,7 +125,6 @@ async function handleSocketReady(socket, identity) {
             return;
         }
 
-
         if (!event.Actor.Attributes.name) {
             return;
         }
