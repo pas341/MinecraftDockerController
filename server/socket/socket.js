@@ -9,6 +9,7 @@ const commandSessions = {};
 const listeners = [];
 
 let suspended = false;
+let preventReconnect = false;
 
 function isWindows() {
     return process.platform === 'win32';
@@ -246,6 +247,12 @@ exports.so = {
                 console.log(`Server is suspended, not attempting to reconnect.`);
                 return;
             }
+
+            if (self.isPreventReconnect()) {
+                console.log(`Preventing reconnection as per configuration.`);
+                return;
+            }
+
             let reconnectInterval = setInterval(() => {
                 if (!socket.connected) {
                     console.log("Attempting to reconnect...");
@@ -284,52 +291,67 @@ exports.so = {
                     await handleSocketReady(socket, identity);
                 } else if (response.code == 4253) {
                     showPopupAndWait("Invalid License", "License Error");
+                    self.setPreventReconnect(true);
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
                 } else if (response.code == 8542) {
                     suspended = true;
+                    self.setPreventReconnect(true);
                     showPopupAndWait("Server Suspended from main managment interface", "Server Error");
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
                 } else if (response.code == 4250) {
                     showPopupAndWait(`Invalid Server Token`, "Server Error");
+                    self.setPreventReconnect(true);
                     console.log(`Server Token missing for server please contact the tool developer`);
                     preventPM2Restart();
-                } else {
-                    console.log(response);
-                }
-                if (response.code == 4258) {
+                }else if (response.code == 4258) {
+                    self.setPreventReconnect(true);
                     showPopupAndWait("License Disabled by the provider", "License Error");
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
+                } else if (response.code == 4252) {
+                    self.setPreventReconnect(true);
+                    showPopupAndWait("The server token used on this server is incorrect for the hardwere on the server", "License Error");
+                    console.log(`-------------------------------------------`);
+                    preventPM2Restart();
+                } else {
+                    console.log(response);
                 }
                 console.log(`-------------------------------------------`);
                 console.log(`\n \n`);
                 resolve();
             });
             socket.once(`registerfinished`, async (response) => {
-                const machineid = machineIdSync(true);
-                if (response.code == 200) { // valid first register
-                    if (response.token) {
-                        if (!fs.existsSync(`${process.cwd()}/data`)) {
-                            fs.mkdirSync(`${process.cwd()}/data`);
+                try {
+                    console.log(response);
+                    const machineid = machineIdSync(true);
+                    if (response.code == 200) { // valid first register
+                        if (response.token) {
+                            if (!fs.existsSync(`${process.cwd()}/data`)) {
+                                fs.mkdirSync(`${process.cwd()}/data`);
+                            }
+                            fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
+                            console.log(`Token saved to ${process.cwd()}/data/token.txt`);
+                            identity = response.token;
                         }
-                        fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
-                        identity = response.token;
+                    } else if (response.code == 201) { // valid allready registered
+                        if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
+                            let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
+                            socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
+                            identity = token;
+                        } else {
+                            console.log(`Server Token missing for server please contact the tool developer`);
+                            self.setPreventReconnect(true);
+                            socket.disconnect(true);
+                            await util.sleep(60 * 1000 * 5);
+                            process.exit(-1);
+                        }
                     }
-                } else if (response.code == 201) { // valid allready registered
-                    if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-                        let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
-                        socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
-                        identity = token;
-                    } else {
-                        console.log(`Server Token missing for server please contact the tool developer`);
-                        socket.disconnect(true);
-                        await util.sleep(60 * 1000 * 5);
-                        process.exit(-1);
-                    }
+                } catch (error) {
+                    console.log(`Error: ${error}`);
                 }
             });
             socket.once("connect_error", (error) => {
@@ -344,6 +366,12 @@ exports.so = {
     },
     getSocket: () => {
         return socket;
+    },
+    setPreventReconnect: (value) => {
+        preventReconnect = value;
+    },
+    isPreventReconnect: () => {
+        return preventReconnect;
     },
 };
 
