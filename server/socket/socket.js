@@ -290,12 +290,14 @@ exports.so = {
                     // used to tell the server is ready to send data to web interface
                     await handleSocketReady(socket, identity);
                 } else if (response.code == 4253) {
+                    // used to tell the server has an invalid license key
                     showPopupAndWait("Invalid License", "License Error");
                     self.setPreventReconnect(true);
                     console.log(response.message);
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
                 } else if (response.code == 8542) {
+                    // used to tell the server is suspended from the main management interface
                     suspended = true;
                     self.setPreventReconnect(true);
                     showPopupAndWait("Server Suspended from main managment interface", "Server Error");
@@ -303,16 +305,19 @@ exports.so = {
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
                 } else if (response.code == 4250) {
+                    // used to tell the server is not registered yet
                     showPopupAndWait(`Invalid Server Token`, "Server Error");
                     self.setPreventReconnect(true);
                     console.log(`Server Token missing for server please contact the tool developer`);
                     preventPM2Restart();
                 }else if (response.code == 4258) {
+                    // used to tell the license key is disabled by the provider
                     self.setPreventReconnect(true);
                     showPopupAndWait("License Disabled by the provider", "License Error");
                     console.log(`-------------------------------------------`);
                     preventPM2Restart();
                 } else if (response.code == 4252) {
+                    // used to tell the server is registered on another server
                     self.setPreventReconnect(true);
                     showPopupAndWait("The server token used on this server is incorrect for the hardwere on the server", "License Error");
                     console.log(`-------------------------------------------`);
