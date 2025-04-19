@@ -171,14 +171,14 @@ exports.so = {
         if (isLocalSecondary) {
             let scan = await portScanner.scanNetworkPreferedPrefixed(socketConfig.port, `192.168.1`);
             if (scan.length > 0) {
-                address = scan[0];
+                address = `wss://${scan[0]}`;
             }
+            console.log(`Connecting to local secondary server: ${address}:${socketConfig.port}`);
+        } else {
+            console.log(`Connecting to socket server: ${address}:${socketConfig.port}`);
         }
 
-        console.log(`Connecting to socket server: ${address}:${socketConfig.port}`);
-        console.log(`Socket server address: ${address}`);
-        console.log(`Socket server port: ${socketConfig.port}`);
-        
+
 
 
         socket = await io(`${address}:${socketConfig.port}`, { transports: ["websocket"], autoConnect: false, rejectUnauthorized: false });
@@ -213,7 +213,7 @@ exports.so = {
         });
         socket.on("error", (error) => {
             console.log(` [${identity}] ${util.prettyDate()} : [ERROR] : [SOCKET ERROR]: ${error}`);
-            console.error(error);
+            //console.error(error);
         });
 
         socket.on(`containerexists`, async (containername, callback) => {
