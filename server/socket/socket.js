@@ -132,7 +132,7 @@ async function handleSocketReady(socket, identity) {
 
 
         let containerName = event.Actor.Attributes.name;
-        socket.emit(`containerUpdated`, {server: identity, event: event.Action, container: containerName });
+        socket.emit(`containerUpdated`, { server: identity, event: event.Action, container: containerName });
 
     });
     stream.on('error', (error) => {
@@ -281,99 +281,96 @@ exports.so = {
     },
     connect: async () => {
         socket.open();
-        await new Promise((resolve) => {
-            socket.once(`identconfirmed`, async (response) => {
-                console.log(` [${identity}] : [INFO] : Socket ready for use`);
-                console.log(`\n \nLicense Info`);
-                console.log(`-------------------------------------------`);
-                if (response.code == 200) {
-                    console.log(`License holder: ${response.holder}`);
-                    console.log(`License status: ${response.status}`);
-                    console.log(`Max physical servers: ${response.maxservers}`);
-                    if (response.serversavalible != null) {
-                        console.log(`Remaining physical servers: ${response.serversavalible}`);
-                    }
-                    console.log(`Max virtual servers: ${response.maxcontainers}`);
-                    if (response.containersavalible != null) {
-                        console.log(`Remaining virtual servers: ${response.containersavalible}`);
-                    }
-                    // used to tell the server is ready to send data to web interface
-                    await handleSocketReady(socket, identity);
-                } else if (response.code == 4253) {
-                    // used to tell the server has an invalid license key
-                    showPopupAndWait("Invalid License", "License Error");
-                    self.setPreventReconnect(true);
-                    console.log(response.message);
-                    console.log(`-------------------------------------------`);
-                    preventPM2Restart();
-                } else if (response.code == 8542) {
-                    // used to tell the server is suspended from the main management interface
-                    suspended = true;
-                    self.setPreventReconnect(true);
-                    showPopupAndWait("Server Suspended from main managment interface", "Server Error");
-                    console.log(response.message);
-                    console.log(`-------------------------------------------`);
-                    preventPM2Restart();
-                } else if (response.code == 4250) {
-                    // used to tell the server is not registered yet
-                    showPopupAndWait(`Invalid Server Token`, "Server Error");
-                    self.setPreventReconnect(true);
-                    console.log(`Server Token missing for server please contact the tool developer`);
-                    preventPM2Restart();
-                }else if (response.code == 4258) {
-                    // used to tell the license key is disabled by the provider
-                    self.setPreventReconnect(true);
-                    showPopupAndWait("License Disabled by the provider", "License Error");
-                    console.log(`-------------------------------------------`);
-                    preventPM2Restart();
-                } else if (response.code == 4252) {
-                    // used to tell the server is registered on another server
-                    self.setPreventReconnect(true);
-                    showPopupAndWait("The server token used on this server is incorrect for the hardwere on the server", "License Error");
-                    console.log(`-------------------------------------------`);
-                    preventPM2Restart();
-                } else {
-                    console.log(response);
+        socket.once(`identconfirmed`, async (response) => {
+            console.log(` [${identity}] : [INFO] : Socket ready for use`);
+            console.log(`\n \nLicense Info`);
+            console.log(`-------------------------------------------`);
+            if (response.code == 200) {
+                console.log(`License holder: ${response.holder}`);
+                console.log(`License status: ${response.status}`);
+                console.log(`Max physical servers: ${response.maxservers}`);
+                if (response.serversavalible != null) {
+                    console.log(`Remaining physical servers: ${response.serversavalible}`);
                 }
-                console.log(`-------------------------------------------`);
-                console.log(`\n \n`);
-                resolve();
-            });
-            socket.once(`registerfinished`, async (response) => {
-                try {
-                    console.log(response);
-                    const machineid = machineIdSync(true);
-                    if (response.code == 200) { // valid first register
-                        if (response.token) {
-                            if (!fs.existsSync(`${process.cwd()}/data`)) {
-                                fs.mkdirSync(`${process.cwd()}/data`);
-                            }
-                            fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
-                            console.log(`Token saved to ${process.cwd()}/data/token.txt`);
-                            identity = response.token;
-                        }
-                    } else if (response.code == 201) { // valid allready registered
-                        if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
-                            let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
-                            socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
-                            identity = token;
-                        } else {
-                            console.log(`Server Token missing for server please contact the tool developer`);
-                            self.setPreventReconnect(true);
-                            socket.disconnect(true);
-                            await util.sleep(60 * 1000 * 5);
-                            process.exit(-1);
-                        }
-                    }
-                } catch (error) {
-                    console.log(`Error: ${error}`);
+                console.log(`Max virtual servers: ${response.maxcontainers}`);
+                if (response.containersavalible != null) {
+                    console.log(`Remaining virtual servers: ${response.containersavalible}`);
                 }
-            });
-            socket.once("connect_error", (error) => {
-                console.log(` [${identity}] : [ERROR] : [SOCKET ERROR]: ${error}`);
-                console.error(error);
-                resolve();
-            });
+                // used to tell the server is ready to send data to web interface
+                await handleSocketReady(socket, identity);
+            } else if (response.code == 4253) {
+                // used to tell the server has an invalid license key
+                showPopupAndWait("Invalid License", "License Error");
+                self.setPreventReconnect(true);
+                console.log(response.message);
+                console.log(`-------------------------------------------`);
+                preventPM2Restart();
+            } else if (response.code == 8542) {
+                // used to tell the server is suspended from the main management interface
+                suspended = true;
+                self.setPreventReconnect(true);
+                showPopupAndWait("Server Suspended from main managment interface", "Server Error");
+                console.log(response.message);
+                console.log(`-------------------------------------------`);
+                preventPM2Restart();
+            } else if (response.code == 4250) {
+                // used to tell the server is not registered yet
+                showPopupAndWait(`Invalid Server Token`, "Server Error");
+                self.setPreventReconnect(true);
+                console.log(`Server Token missing for server please contact the tool developer`);
+                preventPM2Restart();
+            } else if (response.code == 4258) {
+                // used to tell the license key is disabled by the provider
+                self.setPreventReconnect(true);
+                showPopupAndWait("License Disabled by the provider", "License Error");
+                console.log(`-------------------------------------------`);
+                preventPM2Restart();
+            } else if (response.code == 4252) {
+                // used to tell the server is registered on another server
+                self.setPreventReconnect(true);
+                showPopupAndWait("The server token used on this server is incorrect for the hardwere on the server", "License Error");
+                console.log(`-------------------------------------------`);
+                preventPM2Restart();
+                reject();
+            } else {
+                console.log(response);
+            }
+            console.log(`-------------------------------------------`);
+            console.log(`\n \n`);
+        });
+        socket.once(`registerfinished`, async (response) => {
+            try {
+                console.log(response);
+                const machineid = machineIdSync(true);
+                if (response.code == 200) { // valid first register
+                    if (response.token) {
+                        if (!fs.existsSync(`${process.cwd()}/data`)) {
+                            fs.mkdirSync(`${process.cwd()}/data`);
+                        }
+                        fs.writeFileSync(`${process.cwd()}/data/token.txt`, response.token);
+                        console.log(`Token saved to ${process.cwd()}/data/token.txt`);
+                        identity = response.token;
+                    }
+                } else if (response.code == 201) { // valid allready registered
+                    if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
+                        let token = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
+                        socket.emit(`identify`, { identity: token, machineid: machineid }); // required for socket server to know who the server is...
+                        identity = token;
+                    } else {
+                        console.log(`Server Token missing for server please contact the tool developer`);
+                        self.setPreventReconnect(true);
+                        socket.disconnect(true);
+                        await util.sleep(60 * 1000 * 5);
+                        process.exit(-1);
+                    }
+                }
+            } catch (error) {
+                console.log(`Error: ${error}`);
+            }
+        });
+        socket.once("connect_error", (error) => {
+            console.log(` [${identity}] : [ERROR] : [SOCKET ERROR]: ${error}`);
+            console.error(error);
         });
     },
     disconnect: async () => {
