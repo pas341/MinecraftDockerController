@@ -1,4 +1,4 @@
-var socket, identity, config, scripts, util, self, dockerManager, systemUtils;
+var socket, identity, config, scripts, util, self, dockerManager, systemUtils, portScanner, isLocalSecondary;
 const io = require(`socket.io-client`);
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 const fs = require(`fs`);
@@ -154,19 +154,29 @@ async function handleSocketReady(socket, identity) {
 }
 
 exports.so = {
-    init: async (s, socketConfig) => {
+    init: async (s, socketConfig, ilc) => {
         self = this.so;
         scripts = s;
         config = s.config.main;
         systemUtils = s.utils.system;
+        isLocalSecondary = ilc;
         if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
             identity = fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`);
         }
         util = s.util;
         dockerManager = s.managers.docker;
+        portScanner = s.utils.portScanner;
+        let address = socketConfig.server;
 
-        socket = io(`${socketConfig.server}:${socketConfig.port}`, { transports: ["websocket"], autoConnect: false, rejectUnauthorized: false });
-        self.registerListeners();
+        if (isLocalSecondary) {
+            let scan = await portScanner.scanNetworkPreferedPrefixed(socketConfig.port, `192.168.1`);
+            if (scan.length > 0) {
+                address = scan[0];
+            }
+        }
+
+        socket = await io(`${address}:${socketConfig.port}`, { transports: ["websocket"], autoConnect: false, rejectUnauthorized: false });
+        await self.registerListeners();
     },
     registerListeners: async () => {
         try {
@@ -178,7 +188,7 @@ exports.so = {
                 const event = require(path.join(eventsPath, file)).event;
                 if (event && typeof event.register === 'function') {
                     //console.log(`Initializing event: ${file}`); // Debugging log
-                    await event.init(scripts, socket);
+                    await event.init(scripts, socket, isLocalSecondary);
                     await event.register(socket);
                     //console.log(`Registered event: ${file}`); // Debugging log
                     listeners.push(file.replace('.js', ''));

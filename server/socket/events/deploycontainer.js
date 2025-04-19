@@ -1,15 +1,16 @@
-var socket, identity, config, scripts, util, self, dockerManager, systemUtils;
+var socket, identity, config, scripts, util, self, dockerManager, systemUtils, isLocalSecondary;
 
 const fs = require('fs');
 
 exports.event = {
-    init: async (scripts, socket) => {
+    init: async (scripts, socket, ils) => {
         self = this.event;
         util = scripts.util;
         config = scripts.config.main;
         dockerManager = scripts.managers.docker;
         systemUtils = scripts.utils.system;
         identity = scripts.identity;
+        isLocalSecondary = ils;
         socket = socket;
     },
     register: async (socket) => {
