@@ -34,7 +34,6 @@ const interactions = {
 		await scripts.socket.socket.init(s, scripts.socket.config);
 		await scripts.socket.socket.connect();
 		if (config.socket.enableLocalSecondary) {
-			console.log(config);
 			await scripts.socket.localNetSocket.init(s, config.socket, true);
 			await scripts.socket.localNetSocket.connect();
 		}

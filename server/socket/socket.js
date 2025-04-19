@@ -175,6 +175,12 @@ exports.so = {
             }
         }
 
+        console.log(`Connecting to socket server: ${address}:${socketConfig.port}`);
+        console.log(`Socket server address: ${address}`);
+        console.log(`Socket server port: ${socketConfig.port}`);
+        
+
+
         socket = await io(`${address}:${socketConfig.port}`, { transports: ["websocket"], autoConnect: false, rejectUnauthorized: false });
         await self.registerListeners();
     },
