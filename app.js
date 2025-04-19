@@ -13,6 +13,7 @@ const scripts = {
 	socket: {
 		socket: socket,
 		config: config.socket,
+		localNetSocket: localNetSocket,
 	},
 	config: {
 		main: config,
@@ -33,8 +34,8 @@ const interactions = {
 		await scripts.socket.socket.init(s, scripts.socket.config);
 		await scripts.socket.socket.connect();
 		if (config.socket.enableLocalSecondary) {
-			await localNetSocket.socket.init(s, config.socket.config, true);
-			await localNetSocket.socket.connect();
+			await scripts.localNetSocket.init(s, config.socket.config, true);
+			await scripts.localNetSocket.connect();
 		}
 	}
 };
