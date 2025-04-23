@@ -20,6 +20,7 @@ exports.manager = {
         } catch (e) {
             try {
                 if (platform === 'win32') {
+                    console.log(`[dockerManager.js] : [init()] Docker is not available on the default socket path, trying Docker Desktop for Windows`);
                     docker = new Docker({ socketPath: '//./pipe/dockerDesktopLinuxEngine' });
                 }
             } catch (e) {
