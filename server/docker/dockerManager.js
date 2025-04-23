@@ -12,7 +12,6 @@ exports.manager = {
     },
     getList: async () => {
         try {
-
             let containers = await docker.listContainers();
             return containers;
         } catch (e) {
@@ -73,158 +72,208 @@ exports.manager = {
         }
     },
     getRunningContainers: async () => {
-        let containers = await docker.listContainers();
-        return containers;
+        try {
+            let containers = await docker.listContainers();
+            return containers;
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getRunningContainers()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
+        }
     },
     doesContainerExist: async (containername) => {
-        let containerRequest = await self.getContainer(containername);
-        return containerRequest.container != null;
+        try {
+            let containerRequest = await self.getContainer(containername);
+            return containerRequest.container != null;
+        } catch (e) {
+            console.error(`[dockerManager.js] : [doesContainerExist()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
     },
     deleteContainer: async (containername) => {
-        let con = await self.getContainer(containername);
-        if (con) {
-            if (con.code == 200) {
-                let action = await con.container.stop().then(() => con.container.remove()).then(() => {
-                    return { code: 200, message: `container deleted` };
-                }).catch(e => { return { code: 91, message: `Container failed to be stopped then deleted;`, error: e }; });
-                return action;
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    let action = await con.container.stop().then(() => con.container.remove()).then(() => {
+                        return { code: 200, message: `container deleted` };
+                    }).catch(e => { return { code: 91, message: `Container failed to be stopped then deleted;`, error: e }; });
+                    return action;
+                } else {
+                    return { code: 93, message: `Container not found for deleteContainer(${containername})`, failedCall: con };
+                }
             } else {
-                return { code: 93, message: `Container not found for deleteContainer(${containername})`, failedCall: con };
+                return { code: 92, message: `Failed to run container list during delete Container(${containername})` };
             }
-        } else {
-            return { code: 92, message: `Failed to run container list during delete Container(${containername})` };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [deleteContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },
     getContainerStatus: async (containername) => {
-        let con = await self.getContainer(containername);
-        if (con) {
-            if (con.code == 200) {
-                let container = con.container;
-                if (container) {
-                    let status = await container.inspect();
-                    if (status) {
-                        return { code: 200, status: status };
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    let container = con.container;
+                    if (container) {
+                        let status = await container.inspect();
+                        if (status) {
+                            return { code: 200, status: status };
+                        } else {
+                            return { code: 94, message: `Unable to fetch container status` };
+                        }
                     } else {
-                        return { code: 94, message: `Unable to fetch container status` };
+                        return { code: 93, message: `Container not found for getContainerStatus: ${containername}`, failedCall: con };
                     }
-                } else {
-                    return { code: 93, message: `Container not found for getContainerStatus: ${containername}`, failedCall: con };
                 }
+            } else {
+                return { code: 92, message: `Failed to run container list during getContainerStatus(${containername})` };
             }
-        } else {
-            return { code: 92, message: `Failed to run container list during getContainerStatus(${containername})` };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getContainerStatus()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },
     createContainer: async (containerConfig) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
-        }
-
-        if (await self.doesContainerExist(containerConfig.name)) {
-            return { code: 409, message: `container already exists`, container: null };
-        }
-
-        let container = await docker.createContainer(containerConfig).then(con => con.start())
+        try {
+            if (!docker) {
+                return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+            }
+            
+            if (await self.doesContainerExist(containerConfig.name)) {
+                return { code: 409, message: `container already exists`, container: null };
+            }
+            
+            let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => {
                 console.error(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
                 console.error(e);
                 return { code: 1, message: `Container failed to be started or created`, error: e };
             });
-        return container;
+            return container;
+        } catch (e) {
+            console.error(`[dockerManager.js] : [createContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
     },
     getLogs: async (containername) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        try {
+            if (!docker) {
+                return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+            }
+            
+            if (!await self.doesContainerExist(containername)) {
+                return { code: 404, message: `container does not exist`, container: null };
+            }
+            
+            
+            let con = await self.getContainer(containername);
+            let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+            
+            // Split logs into lines and return only the last 250 lines
+            let logLines = logs.toString().split('\n');
+            let last250Lines = logLines.slice(-250).join('\n');
+            
+            return { code: 200, message: `Logs are in the logs object`, logs: last250Lines.split('\n').reverse().join('\n') };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getLogs()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
-
-        if (!await self.doesContainerExist(containername)) {
-            return { code: 404, message: `container does not exist`, container: null };
-        }
-
-
-        let con = await self.getContainer(containername);
-        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
-
-        // Split logs into lines and return only the last 250 lines
-        let logLines = logs.toString().split('\n');
-        let last250Lines = logLines.slice(-250).join('\n');
-
-        return { code: 200, message: `Logs are in the logs object`, logs: last250Lines.split('\n').reverse().join('\n') };
     },
     getLogsPaginated: async (containername, page, perPage) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
-        }
-
-        if (!await self.doesContainerExist(containername)) {
-            return { code: 404, message: `container does not exist`, container: null };
-        }
-
-        let con = await self.getContainer(containername);
-        let params = { stdout: true, stderr: true, follow: false };
-        let logs = await con.container.logs(params);
-        // Split logs into lines and reverse them so latest logs are first
-        let logLines = logs.toString(`utf-8`).split('\n').reverse();
-
-        // Calculate pagination
-        let totalLines = logLines.length;
-        let totalPages = Math.ceil(totalLines / perPage);
-        let start = (page - 1) * perPage;
-        let end = start + perPage;
-
-        // Get the requested page of logs
-        let paginatedLogs = logLines.slice(start, end).join('\n');
-        // Reverse the lines back to their original order
-        paginatedLogs = paginatedLogs.split('\n').reverse().join('\n');
-
-        return {
-            code: 200,
-            message: `Logs are in the logs object`,
-            logs: paginatedLogs,
-            pagination: {
-                currentPage: page,
-                perPage: perPage,
-                totalPages: totalPages,
-                totalLines: totalLines
+        try {
+            if (!docker) {
+                return { code: 502, message: `docker is not available on this server at the moment`, container: null };
             }
-        };
+            
+            if (!await self.doesContainerExist(containername)) {
+                return { code: 404, message: `container does not exist`, container: null };
+            }
+            
+            let con = await self.getContainer(containername);
+            let params = { stdout: true, stderr: true, follow: false };
+            let logs = await con.container.logs(params);
+            // Split logs into lines and reverse them so latest logs are first
+            let logLines = logs.toString(`utf-8`).split('\n').reverse();
+            
+            // Calculate pagination
+            let totalLines = logLines.length;
+            let totalPages = Math.ceil(totalLines / perPage);
+            let start = (page - 1) * perPage;
+            let end = start + perPage;
+            
+            // Get the requested page of logs
+            let paginatedLogs = logLines.slice(start, end).join('\n');
+            // Reverse the lines back to their original order
+            paginatedLogs = paginatedLogs.split('\n').reverse().join('\n');
+            
+            return {
+                code: 200,
+                message: `Logs are in the logs object`,
+                logs: paginatedLogs,
+                pagination: {
+                    currentPage: page,
+                    perPage: perPage,
+                    totalPages: totalPages,
+                    totalLines: totalLines
+                }
+            };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getLogsPaginated()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
     },
     clearLogs: async (containername) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        try {
+            if (!docker) {
+                return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+            }
+            
+            if (!await self.doesContainerExist(containername)) {
+                return { code: 404, message: `container does not exist`, container: null };
+            }
+            
+            let con = await self.getContainer(containername);
+            let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
+            
+            return { code: 200, message: `Logs are in the logs object`, logs: logs.toString(`utf-8`) };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [clearLogs()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
-
-        if (!await self.doesContainerExist(containername)) {
-            return { code: 404, message: `container does not exist`, container: null };
-        }
-
-        let con = await self.getContainer(containername);
-        let logs = await con.container.logs({ stdout: true, stderr: true, follow: false });
-
-        return { code: 200, message: `Logs are in the logs object`, logs: logs.toString(`utf-8`) };
     },
     getContainers: async () => {
-        let containers = await docker.listContainers({ all: true });
-        return containers;
+        try {
+            let containers = await docker.listContainers({ all: true });
+            return containers;
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getContainers()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
+        }
     },
     executeCommand: async (containername, command) => {
-        if (!docker) {
-            return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+        try {
+            if (!docker) {
+                return { code: 502, message: `docker is not available on this server at the moment`, container: null };
+            }
+            
+            if (!await self.doesContainerExist(containername)) {
+                return { code: 404, message: `container does not exist`, container: null };
+            }
+            
+            let con = await self.getContainer(containername);
+            let status = await self.getContainerStatus(containername);
+            
+            if (status.code !== 200 || !status.status.State.Running) {
+                return { code: 400, message: `container is not running`, container: null };
+            }
+            
+            const output = await containerExec(con.container, command.split(` `));
+            return { code: 200, message: `Command executed`, result: output.toString(`utf-8`) };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [executeCommand()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
-
-        if (!await self.doesContainerExist(containername)) {
-            return { code: 404, message: `container does not exist`, container: null };
-        }
-
-        let con = await self.getContainer(containername);
-        let status = await self.getContainerStatus(containername);
-
-        if (status.code !== 200 || !status.status.State.Running) {
-            return { code: 400, message: `container is not running`, container: null };
-        }
-
-        const output = await containerExec(con.container, command.split(` `));
-        return { code: 200, message: `Command executed`, result: output.toString(`utf-8`) };
     }
 }
