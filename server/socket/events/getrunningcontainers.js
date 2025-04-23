@@ -15,10 +15,10 @@ exports.event = {
     register: async (socket) => {
         socket.on(`getrunningcontainers`, async (callback) => {
             try {
-                let containers = await dockerManager.getRunningContainers();
+                let containersReq = await dockerManager.getRunningContainers();
                 let output = [];
                 
-                for (let container of containers) {
+                for (let container of containersReq.containers) {
                     let names = container.Names;
                     let state = container.State;
                     let status = container.Status;

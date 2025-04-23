@@ -74,7 +74,7 @@ exports.manager = {
     getRunningContainers: async () => {
         try {
             let containers = await docker.listContainers();
-            return containers;
+            return {code: 200, message: `containers found`, containers: containers};
         } catch (e) {
             console.error(`[dockerManager.js] : [getRunningContainers()] Docker is not available on the server`);
             return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
