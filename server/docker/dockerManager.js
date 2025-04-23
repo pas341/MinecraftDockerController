@@ -8,13 +8,25 @@ exports.manager = {
         config = scripts.config;
         self = this.manager;
 
-        let dockerPipe = process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock';
+        let platform = process.platform;
+        let dockerPipe = platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock';
 
         if (config?.main?.docker?.pipeOverride?.length > 0) {
             dockerPipe = config.main.docker.pipeOverride;
         }
 
-        docker = new Docker({ socketPath: dockerPipe });
+        try {
+            docker = new Docker({ socketPath: dockerPipe });
+        } catch (e) {
+            try {
+                if (platform === 'win32') {
+                    docker = new Docker({ socketPath: '//./pipe/dockerDesktopLinuxEngine' });
+                }
+            } catch (e) {
+                console.error(`[dockerManager.js] : [init()] Docker is not available on the server`);
+                docker = null;
+            }
+        }
     },
     getList: async () => {
         try {
