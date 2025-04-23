@@ -14,19 +14,24 @@ exports.event = {
     },
     register: async (socket) => {
         socket.on(`getcontainers`, async (callback) => {
-            let containers = await dockerManager.getContainers();
-            let output = [];
-            
-
-            for (let container of containers) {
-                let names = container.Names;
-                let state = container.State;
-                let status = container.Status;
-                let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
-                output.push(obj);
+            try {
+                let containers = await dockerManager.getContainers();
+                let output = [];
+                
+                
+                for (let container of containers) {
+                    let names = container.Names;
+                    let state = container.State;
+                    let status = container.Status;
+                    let obj = {name: names[0].replace(`/`, ``), state: state, status: status};
+                    output.push(obj);
+                }
+                
+                await callback(output);
+            } catch (error) {
+                console.error(`Error getting containers:`, error);
+                await callback({error: `Failed to get containers.`});
             }
-
-            await callback(output);
         });
     },
 
