@@ -11,7 +11,7 @@ exports.manager = {
         let dockerPipe = process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock';
 
         if (config?.main?.docker?.pipeOverride?.length > 0) {
-            dockerPipe = config.docker.pipeOverride;
+            dockerPipe = config.main.docker.pipeOverride;
         }
 
         docker = new Docker({ socketPath: dockerPipe });
