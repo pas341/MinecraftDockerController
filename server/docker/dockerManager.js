@@ -8,7 +8,13 @@ exports.manager = {
         config = scripts.config;
         self = this.manager;
 
-        docker = new Docker({ socketPath: process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock' });
+        let dockerPipe = process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock';
+
+        if (config?.docker?.pipeOverride?.length > 0) {
+            dockerPipe = config.docker.pipeOverride;
+        }
+
+        docker = new Docker({ socketPath: dockerPipe });
     },
     getList: async () => {
         try {

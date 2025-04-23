@@ -12,4 +12,7 @@
         "docker-container-base-location": "",
         "curseforge-api-key": ""
     }
+    "docker": {
+        "pipeOverride": ""
+    }
 }
