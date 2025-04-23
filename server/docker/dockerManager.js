@@ -18,15 +18,8 @@ exports.manager = {
         try {
             docker = new Docker({ socketPath: dockerPipe });
         } catch (e) {
-            try {
-                if (platform === 'win32') {
-                    console.log(`[dockerManager.js] : [init()] Docker is not available on the default socket path, trying Docker Desktop for Windows`);
-                    docker = new Docker({ socketPath: '//./pipe/dockerDesktopLinuxEngine' });
-                }
-            } catch (e) {
-                console.error(`[dockerManager.js] : [init()] Docker is not available on the server`);
-                docker = null;
-            }
+            console.error(`[dockerManager.js] : [init()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, docker: null };
         }
     },
     getList: async () => {
