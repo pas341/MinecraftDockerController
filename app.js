@@ -1,7 +1,5 @@
 const config = require(`${__dirname}/server/config/config.json`);
 
-const socket = require(`./server/socket/socket.js`).so;
-const localNetSocket = require(`./server/socket/socket.js`).so;
 const util = require(`./server/utils/util.js`).util;
 const dockerManager = require(`./server/docker/dockerManager.js`).manager;
 const systemUtils = require(`./server/utils/systemUtils.js`).systemUtils;
@@ -11,9 +9,8 @@ const myArgs = process.argv.slice(2);
 
 const scripts = {
 	socket: {
-		socket: socket,
 		config: config.socket,
-		localNetSocket: localNetSocket,
+		servers: [],
 	},
 	config: {
 		main: config,
@@ -31,11 +28,13 @@ const scripts = {
 
 const interactions = {
 	socketConnect: async (s) => {
-		await scripts.socket.socket.init(s, scripts.socket.config);
-		await scripts.socket.socket.connect();
-		if (config.socket.enableLocalSecondary) {
-			await scripts.socket.localNetSocket.init(s, config.socket, true);
-			await scripts.socket.localNetSocket.connect();
+		if (config?.socket?.servers.length > 0) {
+			for (let i = 0; i < config.socket.servers.length; i++) {
+				const socket = require(`./server/socket/socket.js`).so;
+				await socket.init(s, config.socket.servers[i], true);
+				await socket.connect();
+				scripts.socket.servers.push(socket);
+			}
 		}
 	}
 };

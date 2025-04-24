@@ -2,7 +2,17 @@
     "socket": {
         "server": "",
         "port": -1,
-        "enableLocalSecondary": false
+        "enableLocalSecondary": false,
+        "servers": [
+            {
+                "name": "Local",
+                "address": "ws://localhost",
+                "port": 3304,
+                "local": true,
+                "localPort": 3304,
+                "localAddress": "localhost"
+            }
+        ]
     },
     "license": {
         "key": ""

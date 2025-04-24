@@ -1,17 +1,17 @@
-var socket, identity, config, scripts, util, self, dockerManager, systemUtils, isLocalSecondary;
+var socket, identity, config, scripts, util, self, dockerManager, systemUtils, socketConfig;
 
 const fs = require('fs');
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 
 exports.event = {
-    init: async (scripts, socket, ils) => {
+    init: async (scripts, socket, sc) => {
         self = this.event;
         util = scripts.util;
         config = scripts.config.main;
         dockerManager = scripts.managers.docker;
         systemUtils = scripts.utils.system;
         identity = scripts.identity;
-        isLocalSecondary = ils;
+        socketConfig = sc;
         socket = socket;
     },
     register: async (socket) => {
@@ -33,11 +33,7 @@ exports.event = {
                     process.exit(-1);
                 }
             });
-            if (isLocalSecondary) {
-                console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Local Secondary Server`);
-            }else{
-                console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Main Server`);
-            }
+            console.log(` [${identity}] ${util.prettyDate()} : [INFO] : Connected to Server: ${socketConfig.name}`);
         });
     },
 
