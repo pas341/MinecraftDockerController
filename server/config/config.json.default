@@ -1,8 +1,5 @@
 {
     "socket": {
-        "server": "",
-        "port": -1,
-        "enableLocalSecondary": false,
         "servers": [
             {
                 "name": "Local",
