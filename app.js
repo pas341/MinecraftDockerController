@@ -1,5 +1,11 @@
 const config = require(`${__dirname}/server/config/config.json`);
 
+const requiredConfigVerision = `1.0.0`;
+if (config.version !== requiredConfigVerision) {
+	console.error(`Config version mismatch. Expected ${requiredConfigVerision}, but got ${config.version}.`);
+	console.error(`Please update your config file to the latest version.`);
+}
+
 const util = require(`./server/utils/util.js`).util;
 const dockerManager = require(`./server/docker/dockerManager.js`).manager;
 const systemUtils = require(`./server/utils/systemUtils.js`).systemUtils;

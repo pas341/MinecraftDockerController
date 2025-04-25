@@ -21,5 +21,6 @@
     }
     "docker": {
         "pipeOverride": ""
-    }
+    },
+    "version": "1.0.0" 
 }
