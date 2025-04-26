@@ -159,8 +159,10 @@ exports.manager = {
             let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => {
+                if (e.error.includes(`No such image`)) {
+                    return { code: 404, message: `Image not found`, error: e };
+                }
                 console.error(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
-                console.error(e);
                 return { code: 1, message: `Container failed to be started or created`, error: e };
             });
             return container;
