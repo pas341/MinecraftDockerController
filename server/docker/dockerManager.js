@@ -159,7 +159,7 @@ exports.manager = {
             let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => {
-                if (e.error.includes(`No such image`)) {
+                if (e.message.includes(`No such image`)) {
                     return { code: 404, message: `Image not found`, error: e };
                 }
                 console.error(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
@@ -168,6 +168,7 @@ exports.manager = {
             return container;
         } catch (e) {
             console.error(`[dockerManager.js] : [createContainer()] Docker is not available on the server`);
+            console.error(e);
             return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },
