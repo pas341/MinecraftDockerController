@@ -31,6 +31,15 @@ exports.manager = {
             return { code: 2, message: `docker is not available on this server at the moment`, containers: [] };
         };
     },
+    getImages: async () => {
+        try {
+            let images = await docker.listImages();
+            return { code: 200, message: `images found`, images: images };
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getImages()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, images: [] };
+        }
+    },
     readEvents: async (callback) => {
         try {
             let stream = await docker.getEvents({ since: 0, until: 0, filters: { event: ['start', 'stop'] } });
