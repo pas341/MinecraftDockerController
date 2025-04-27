@@ -32,6 +32,9 @@ const scripts = {
 		system: systemUtils,
 		portScanner: portScanner,
 	},
+	settings: {
+		isEmulator: myArgs.includes(`--emulator`) || myArgs.includes(`-e`),
+	},
 	util: util,
 	args: myArgs,
 };
@@ -54,6 +57,35 @@ const interactions = {
 	console.log(` `);
 	console.log(`:: node version            :`, process.version);
 
+	if (scripts.settings.isEmulator) {
+		console.log(`:: dockerManager emulator  :`, dockerManager.version);
+		console.log(`:: dockerEmulator version   :`, docketManagerEmulator.version);
+		// Ensure dockerManager and emulator have the same version and functions
+		const dockerManagerFunctions = Object.keys(dockerManager);
+		const emulatorFunctions = Object.keys(docketManagerEmulator);
+		
+		if (dockerManager.version !== docketManagerEmulator.version) {
+			console.error(`Version mismatch between dockerManager (${dockerManager.version}) and emulator (${docketManagerEmulator.version}).`);
+			process.exit(1);
+		}
+		
+		const missingInEmulator = dockerManagerFunctions.filter(fn => !emulatorFunctions.includes(fn));
+		const missingInDockerManager = emulatorFunctions.filter(fn => !dockerManagerFunctions.includes(fn));
+		
+		if (missingInEmulator.length > 0 || missingInDockerManager.length > 0) {
+			console.error(`Function mismatch detected between dockerManager and emulator.`);
+			if (missingInEmulator.length > 0) {
+				console.error(`Missing in emulator: ${missingInEmulator.join(', ')}`);
+			}
+			if (missingInDockerManager.length > 0) {
+				console.error(`Missing in dockerManager: ${missingInDockerManager.join(', ')}`);
+			}
+			process.exit(1);
+		}
+		
+		console.log(`dockerManager and emulator are compatible.`);
+	}
+		
 	// establish external service connections/interactions
 	await dockerManager.init(scripts);
 	await systemUtils.init(scripts);

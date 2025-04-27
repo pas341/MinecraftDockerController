@@ -109,7 +109,7 @@ async function handleSocketReady(socket, identity) {
         docker = docker.docker;
     }
 
-    if (!scripts.args.includes(`--emulator`)) {
+    if (!scripts.settings.isEmulator) {
         let stream = await docker.getEvents({ filters: { type: ['container'] } });
         stream.on('data', async (data) => {
             let event = JSON.parse(data.toString());

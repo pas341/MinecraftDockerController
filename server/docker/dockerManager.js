@@ -3,6 +3,7 @@ const Docker = require('dockerode');
 const containerExec = require('dockerode-utils').containerExec;
 
 exports.manager = {
+    version: "1.0.0",
     init: async (scripts) => {
         util = scripts.util;
         config = scripts.config;

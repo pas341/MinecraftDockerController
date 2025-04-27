@@ -10,6 +10,7 @@ const images = {
 };
 
 exports.manager = {
+    version: "1.0.0",
     init: async (scripts) => {
         console.log("[dockerManagerEmulator.js] : [init()] Emulator initialized");
         return { code: 200, message: "Emulator initialized" };
@@ -77,26 +78,29 @@ exports.manager = {
             return { code: 200, message: "Logs are in the logs object", logs: "Mock log line 1\nMock log line 2\nMock log line 3" };
         }
         return { code: 404, message: "container does not exist" };
-    },
-    getLogsPaginated: async (containername, page, perPage) => {
+        },
+        getLogsPaginated: async (containername, page, perPage) => {
         console.log(`[dockerManagerEmulator.js] : [getLogsPaginated()] Fetching paginated logs for: ${containername}`);
         if (containers[containername]) {
-            const logs = ["Mock log line 1", "Mock log line 2", "Mock log line 3", "Mock log line 4", "Mock log line 5"];
+            const logs = [];
+            for (let i = 1; i <= 1000; i++) {
+                logs.push(`Mock log line ${i}`);
+            }
             const totalLines = logs.length;
             const totalPages = Math.ceil(totalLines / perPage);
             const start = (page - 1) * perPage;
             const end = start + perPage;
             const paginatedLogs = logs.slice(start, end).join("\n");
             return {
-                code: 200,
-                message: "Logs are in the logs object",
-                logs: paginatedLogs,
-                pagination: { currentPage: page, perPage: perPage, totalPages: totalPages, totalLines: totalLines }
+            code: 200,
+            message: "Logs are in the logs object",
+            logs: paginatedLogs,
+            pagination: { currentPage: page, perPage: perPage, totalPages: totalPages, totalLines: totalLines }
             };
         }
         return { code: 404, message: "container does not exist" };
-    },
-    clearLogs: async (containername) => {
+        },
+        clearLogs: async (containername) => {
         console.log(`[dockerManagerEmulator.js] : [clearLogs()] Clearing logs for: ${containername}`);
         if (containers[containername]) {
             return { code: 200, message: "Logs cleared" };
