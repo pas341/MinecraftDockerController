@@ -16,18 +16,11 @@ exports.event = {
     register: async (socket) => {
         socket.on(`startcontainer`, async (containername, callback) => {
             try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Starting: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.start().then(async () => { await callback({ code: 200, message: `container started` }) });
-                    console.log(`${containername}: started`);
-                }
+                await dockerManager.startContainer(containername, callback);
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
+                await callback({ code: 5000, message: `error during container startup` });
             }
         });
     },
-
 }

@@ -16,18 +16,11 @@ exports.event = {
     register: async (socket) => {
         socket.on(`stopandremovecontainer`, async (containername, callback) => {
             try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and removed` }) });
-                    console.log(`${containername}: stopped and removed`);
-                }
+                await dockerManager.stopAndRemoveContainer(containername, callback);
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
+                await callback({ code: 5000, message: `error during container shutdown` });
             }
         });
     },
-
 }

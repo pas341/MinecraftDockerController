@@ -3,7 +3,7 @@ var socket, identity, config, scripts, util, self, dockerManager, systemUtils, s
 const fs = require('fs');
 
 exports.event = {
-init: async (scripts, socket, so) => {
+    init: async (scripts, socket, so) => {
         self = this.event;
         util = scripts.util;
         config = scripts.config.main;
@@ -16,18 +16,11 @@ init: async (scripts, socket, so) => {
     register: async (socket) => {
         socket.on(`stopcontainer`, async (containername, callback) => {
             try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.stop().then(async () => { await callback({ code: 200, message: `container stopped` }) });
-                    console.log(`${containername}: stopped`);
-                }
+                await dockerManager.stopContainer(containername, callback);
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container shutdown` });
+                await callback({ code: 5000, message: `error during container shutdown` });
             }
         });
     },
-
 }

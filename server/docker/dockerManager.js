@@ -299,5 +299,105 @@ exports.manager = {
             console.error(`[dockerManager.js] : [executeCommand()] Docker is not available on the server`);
             return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
+    },
+    stopContainer: async (containername, callback) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    console.log(`Stopping: ${containername}`);
+                    let container = con.container;
+                    await container.stop().then(async () => { await callback({ code: 200, message: `container stopped` }) });
+                    console.log(`${containername}: stopped`);
+                } else {
+                    await callback({ code: 93, message: `Container not found for stopContainer(${containername})`, failedCall: con });
+                }
+            } else {
+                await callback({ code: 92, message: `Failed to run container list during stopContainer(${containername})` });
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [stopContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
+    },
+    startContainer: async (containername, callback) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    console.log(`Starting: ${containername}`);
+                    let container = con.container;
+                    await container.start().then(async () => { await callback({ code: 200, message: `container started` }) });
+                    console.log(`${containername}: started`);
+                } else {
+                    await callback({ code: 93, message: `Container not found for startContainer(${containername})`, failedCall: con });
+                }
+            } else {
+                await callback({ code: 92, message: `Failed to run container list during startContainer(${containername})` });
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [startContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
+    },
+    restartContainer: async (containername, callback) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    console.log(`Restarting: ${containername}`);
+                    let container = con.container;
+                    await container.restart().then(async () => { await callback({ code: 200, message: `container restarted` }) });
+                    console.log(`${containername}: restarted`);
+                } else {
+                    await callback({ code: 93, message: `Container not found for restartContainer(${containername})`, failedCall: con });
+                }
+            } else {
+                await callback({ code: 92, message: `Failed to run container list during restartContainer(${containername})` });
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [restartContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
+    },
+    stopAndRemoveContainer: async (containername, callback) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    console.log(`Stopping: ${containername}`);
+                    let container = con.container;
+                    await container.stop().then(con => con.remove()).then(async () => { await callback({ code: 200, message: `container stopped and removed` }) });
+                    console.log(`${containername}: stopped and removed`);
+                } else {
+                    await callback({ code: 93, message: `Container not found for stopAndRemoveContainer(${containername})`, failedCall: con });
+                }
+            } else {
+                await callback({ code: 92, message: `Failed to run container list during stopAndRemoveContainer(${containername})` });
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [stopAndRemoveContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
+    },
+    removeContainer: async (containername, callback) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    console.log(`Removing: ${containername}`);
+                    let container = con.container;
+                    await container.remove().then(async () => { await callback({ code: 200, message: `container removed` }) });
+                    console.log(`${containername}: removed`);
+                } else {
+                    await callback({ code: 93, message: `Container not found for removeContainer(${containername})`, failedCall: con });
+                }
+            } else {
+                await callback({ code: 92, message: `Failed to run container list during removeContainer(${containername})` });
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [removeContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
     }
 }

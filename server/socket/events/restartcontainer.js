@@ -16,18 +16,11 @@ exports.event = {
     register: async (socket) => {
         socket.on(`restartcontainer`, async (containername, callback) => {
             try {
-                let containerRequest = await dockerManager.getContainer(containername);
-                if (containerRequest.code == 200) {
-                    console.log(`Stopping: ${containername}`);
-                    let container = containerRequest.container;
-                    await container.restart().then(async () => { await callback({ code: 200, message: `container restarting` }) });
-                    console.log(`${containername}: restarted`);
-                }
+                await dockerManager.restartContainer(containername, callback);
             } catch (e) {
                 console.error(e);
-                await callback({ code: 5000, message: `error durring container restart` });
+                await callback({ code: 5000, message: `error during container restart` });
             }
         });
     },
-
 }

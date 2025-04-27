@@ -11,7 +11,11 @@ const dockerManager = require(`./server/docker/dockerManager.js`).manager;
 const systemUtils = require(`./server/utils/systemUtils.js`).systemUtils;
 const portScanner = require(`./server/utils/portScanner.js`).scanner;
 const myArgs = process.argv.slice(2);
+const docketManagerEmulator = require(`./server/docker/dockerManagerEmulator.js`).manager;
 
+if (myArgs.includes(`--emulator`)) {
+	console.log(`:: Emulator mode enabled`);
+}
 
 const scripts = {
 	socket: {
@@ -22,7 +26,7 @@ const scripts = {
 		main: config,
 	},
 	managers: {
-		docker: dockerManager,
+		docker: myArgs.includes(`--emulator`) ? docketManagerEmulator : dockerManager,
 	},
 	utils: {
 		system: systemUtils,

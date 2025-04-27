@@ -109,48 +109,48 @@ async function handleSocketReady(socket, identity) {
         docker = docker.docker;
     }
 
-    let stream = await docker.getEvents({ filters: { type: ['container'] } });
-    stream.on('data', async (data) => {
-        let event = JSON.parse(data.toString());
-        let status = event.status;
+    if (!scripts.args.includes(`--emulator`)) {
+        let stream = await docker.getEvents({ filters: { type: ['container'] } });
+        stream.on('data', async (data) => {
+            let event = JSON.parse(data.toString());
+            let status = event.status;
 
-        if (status === `exec_die` || status === `exec_create` || status === `exec_start`) {
-            return;
-        }
+            if (status === `exec_die` || status === `exec_create` || status === `exec_start`) {
+                return;
+            }
 
-        if (!event.Actor) {
-            console.log(event);
-            return;
-        }
-        if (!event.Actor.Attributes) {
-            return;
-        }
+            if (!event.Actor) {
+                console.log(event);
+                return;
+            }
+            if (!event.Actor.Attributes) {
+                return;
+            }
 
-        if (!event.Actor.Attributes.name) {
-            return;
-        }
+            if (!event.Actor.Attributes.name) {
+                return;
+            }
 
 
-        let containerName = event.Actor.Attributes.name;
-        socket.emit(`containerUpdated`, { server: identity, event: event.Action, container: containerName });
-
-    });
-    stream.on('error', (error) => {
-        console.error(`Error: ${error.message}`);
-    });
-    stream.on('end', () => {
-        console.log(`Stream ended`);
-    });
-    stream.on('close', () => {
-        console.log(`Stream closed`);
-    });
-    stream.on('connect', () => {
-        console.log(`Stream connected`);
-    });
-    stream.on('disconnect', () => {
-        console.log(`Stream disconnected`);
-    });
-
+            let containerName = event.Actor.Attributes.name;
+            socket.emit(`containerUpdated`, { server: identity, event: event.Action, container: containerName });
+        });
+        stream.on('error', (error) => {
+            console.error(`Error: ${error.message}`);
+        });
+        stream.on('end', () => {
+            console.log(`Stream ended`);
+        });
+        stream.on('close', () => {
+            console.log(`Stream closed`);
+        });
+        stream.on('connect', () => {
+            console.log(`Stream connected`);
+        });
+        stream.on('disconnect', () => {
+            console.log(`Stream disconnected`);
+        });
+    }
 }
 
 exports.so = {
