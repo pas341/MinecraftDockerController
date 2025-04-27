@@ -4,7 +4,8 @@ const fs = require('fs');
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 
 exports.event = {
-    init: async (scripts, socket, sc) => {
+    init: async (s, socket, sc) => {
+        scripts = s;
         self = this.event;
         util = scripts.util;
         config = scripts.config.main;
