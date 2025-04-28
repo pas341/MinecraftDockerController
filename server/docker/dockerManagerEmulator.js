@@ -2,7 +2,8 @@
 
 const containers = {
     "mock_container_1": { Id: "1", Names: ["/mock_container_1"], State: "running" },
-    "mock_container_2": { Id: "2", Names: ["/mock_container_2"], State: "exited" }
+    "mock_container_2": { Id: "2", Names: ["/mock_container_2"], State: "exited" },
+    "mock_container_3": { Id: "3", Names: ["/mock_container_3"], State: "running" },
 };
 
 const images = {

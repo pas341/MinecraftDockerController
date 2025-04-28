@@ -21,10 +21,11 @@ exports.event = {
 
 
                 for (let container of containers) {
+                    let id = container.Id || container.Names[0].replace(`/`, ``);
                     let names = container.Names;
                     let state = container.State;
                     let status = container.Status;
-                    let obj = { name: names[0].replace(`/`, ``), state: state, status: status };
+                    let obj = {id: id, name: names[0].replace(`/`, ``), state: state, status: status };
                     output.push(obj);
                 }
 
