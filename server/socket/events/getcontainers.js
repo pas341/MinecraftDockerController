@@ -31,8 +31,8 @@ exports.event = {
                     } else {
                         memoryUsage = `0`;
                     }
-                    obj.memoryUsage = memoryUsage;
                     let obj = {id: id, name: names[0].replace(`/`, ``), state: state, status: status, memoryUsage: memoryUsage};
+                    obj.memoryUsage = memoryUsage;
                     output.push(obj);
                 }
 
