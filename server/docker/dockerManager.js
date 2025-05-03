@@ -169,6 +169,7 @@ exports.manager = {
             let container = await docker.createContainer(containerConfig).then(con => con.start())
             .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
             .catch(e => {
+                console.log(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
                 if (e.message.includes(`No such image`)) {
                     return { code: 404, message: `Image not found`, error: e };
                 }
@@ -378,6 +379,25 @@ exports.manager = {
             }
         } catch (e) {
             console.error(`[dockerManager.js] : [stopAndRemoveContainer()] Docker is not available on the server`);
+            return { code: 2, message: `docker is not available on this server at the moment`, container: null };
+        }
+    },
+    getMemoryUsage: async (containername) => {
+        try {
+            let con = await self.getContainer(containername);
+            if (con) {
+                if (con.code == 200) {
+                    let container = con.container;
+                    let stats = await container.stats({ stream: false });
+                    return { code: 200, message: `Memory usage`, memoryUsage: stats.memory_stats.usage };
+                } else {
+                    return { code: 93, message: `Container not found for getMemoryUsage(${containername})`, failedCall: con };
+                }
+            } else {
+                return { code: 92, message: `Failed to run container list during getMemoryUsage(${containername})` };
+            }
+        } catch (e) {
+            console.error(`[dockerManager.js] : [getMemoryUsage()] Docker is not available on the server`);
             return { code: 2, message: `docker is not available on this server at the moment`, container: null };
         }
     },

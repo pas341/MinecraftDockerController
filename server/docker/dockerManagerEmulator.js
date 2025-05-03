@@ -169,5 +169,12 @@ exports.manager = {
         } else {
             await callback({ code: 404, message: "container not found" });
         }
-    }
+    },
+    getMemoryUsage: async (containername) => {
+        console.log(`[dockerManagerEmulator.js] : [getMemoryUsage()] Getting memory usage for: ${containername}`);
+        if (containers[containername]) {
+            return { code: 200, memoryUsage: "100MB" };
+        }
+        return { code: 404, message: "container does not exist" };
+    },
 };

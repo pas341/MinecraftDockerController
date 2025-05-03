@@ -25,7 +25,14 @@ exports.event = {
                     let names = container.Names;
                     let state = container.State;
                     let status = container.Status;
-                    let obj = {id: id, name: names[0].replace(`/`, ``), state: state, status: status };
+                    let memoryUsage = await dockerManager.getMemoryUsage(names[0].replace(`/`, ``));
+                    if (memoryUsage) {
+                        memoryUsage = memoryUsage.memoryUsage;
+                    } else {
+                        memoryUsage = `0`;
+                    }
+                    obj.memoryUsage = memoryUsage;
+                    let obj = {id: id, name: names[0].replace(`/`, ``), state: state, status: status, memoryUsage: memoryUsage};
                     output.push(obj);
                 }
 

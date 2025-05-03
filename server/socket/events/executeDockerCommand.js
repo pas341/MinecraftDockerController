@@ -1,4 +1,4 @@
-var socket, identity, config, scripts, util, self, dockerManager, systemUtils, socketConfig;
+var socket, identity, config, scripts, util, self, dockerManager, systemUtils, socketConfig ;
 
 const fs = require('fs');
 
