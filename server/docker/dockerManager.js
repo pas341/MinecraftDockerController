@@ -1,6 +1,7 @@
 var util, self, docker, config;
 const Docker = require('dockerode');
 const containerExec = require('dockerode-utils').containerExec;
+const fs = require('fs');
 
 exports.manager = {
     version: "1.0.0",
@@ -167,7 +168,9 @@ exports.manager = {
             }
             
             let container = await docker.createContainer(containerConfig).then(con => con.start())
-            .then(con => { return { code: 200, message: `Container created and started`, container: con }; })
+            .then(con => {
+                return { code: 200, message: `Container created and started`, container: con };
+            })
             .catch(e => {
                 console.log(`[dockerManager.js] : [createContainer()] Error creating container: ${e}`);
                 if (e.message.includes(`No such image`)) {
