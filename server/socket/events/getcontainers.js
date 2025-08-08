@@ -23,11 +23,14 @@ exports.event = {
 
                 console.time(`container loop`);
                 for (let container of containers) {
+                    console.time(`processing container ${container.Id}`);
                     let id = container.Id || container.Names[0].replace(`/`, ``);
                     let names = container.Names;
                     let state = container.State;
                     let status = container.Status;
+                    console.time(`getMemoryUsage for ${id}`);
                     let memoryUsage = await dockerManager.getMemoryUsage(names[0].replace(`/`, ``));
+                    console.timeEnd(`getMemoryUsage for ${id}`);
                     if (memoryUsage) {
                         memoryUsage = memoryUsage.memoryUsage;
                     } else {
@@ -36,6 +39,7 @@ exports.event = {
                     let obj = {id: id, name: names[0].replace(`/`, ``), state: state, status: status, memoryUsage: memoryUsage};
                     obj.memoryUsage = memoryUsage;
                     output.push(obj);
+                    console.timeEnd(`processing container ${container.Id}`);
                 }
                 console.timeEnd(`container loop`);
 
