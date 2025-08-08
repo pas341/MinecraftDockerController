@@ -4,10 +4,6 @@ const fs = require('fs');
 const { get } = require('http');
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 
-Date.prototype.getUTCTime = function () {
-    return this.getTime() - (this.getTimezoneOffset() * 60000);
-};
-
 exports.event = {
     init: async (s, socket, sc) => {
         scripts = s;
@@ -25,7 +21,7 @@ exports.event = {
             let currentTime = new Date().getUTCTime();
             console.log(`start: ${start}`);
             console.log(`ping received at: ${currentTime}`);
-            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString(), receiveTime: currentTime, timeOffset: new Date().getTimezoneOffset() });
+            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString() });
         });
     },
 
