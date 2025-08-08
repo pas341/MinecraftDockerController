@@ -16,8 +16,10 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        socket.on(`ping`, async (callback) => {
-            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString() });
+        socket.on(`ping`, async (start, callback) => {
+            let currentTime = new Date().getTime();
+            console.log(currentTime - start);
+            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString(), receiveTime: currentTime - start });
         });
     },
 
