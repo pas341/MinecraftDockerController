@@ -16,8 +16,6 @@ exports.event = {
     register: async (socket) => {
         socket.on(`getcontainers`, async (skipMemory, callback) => {
             try {
-                console.log(`getcontainers event triggered with skipMemory: ${skipMemory}`);
-                console.log(typeof callback);
                 let containers = await dockerManager.getContainers();
                 let output = [];
 
