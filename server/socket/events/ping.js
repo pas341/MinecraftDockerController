@@ -25,8 +25,7 @@ exports.event = {
             let currentTime = new Date().getUTCTime();
             console.log(`start: ${start}`);
             console.log(`ping received at: ${currentTime}`);
-            console.log(`currentPing: ${currentTime - start}`);
-            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString(), receiveTime: currentTime - start, timeOffset: new Date().getTimezoneOffset() });
+            callback({ code: 200, message: `pong`, timestamp: new Date().toISOString(), receiveTime: currentTime, timeOffset: new Date().getTimezoneOffset() });
         });
     },
 
