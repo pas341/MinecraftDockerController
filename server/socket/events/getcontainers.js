@@ -26,9 +26,9 @@ exports.event = {
                     let status = container.Status;
 
                     
+                    let memoryUsage = 0;
                     if (!skipMemory) {
                         // force skipMemory
-                        let memoryUsage = 0;
                         //memoryUsage = await dockerManager.getMemoryUsage(names[0].replace(`/`, ``)); // removed for performance
                         if (memoryUsage) {
                             memoryUsage = memoryUsage.memoryUsage;
