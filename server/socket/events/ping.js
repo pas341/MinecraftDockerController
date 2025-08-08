@@ -4,14 +4,9 @@ const fs = require('fs');
 const { get } = require('http');
 const machineIdSync = require(`node-machine-id`).machineIdSync;
 
-function getUTCNow()
-{
-    var now = new Date();
-    var time = now.getTime();
-    var offset = now.getTimezoneOffset();
-    offset = offset * 60000;
-    return time - offset;
-}
+Date.prototype.getUTCTime = function () {
+    return this.getTime() - (this.getTimezoneOffset() * 60000);
+};
 
 exports.event = {
     init: async (s, socket, sc) => {
@@ -27,7 +22,7 @@ exports.event = {
     },
     register: async (socket) => {
         socket.on(`ping`, async (start, callback) => {
-            let currentTime = getUTCNow();
+            let currentTime = new Date().getUTCTime();
             console.log(`start: ${start}`);
             console.log(`ping received at: ${currentTime}`);
             console.log(`currentPing: ${currentTime - start}`);
