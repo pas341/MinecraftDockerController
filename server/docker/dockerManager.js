@@ -391,7 +391,9 @@ exports.manager = {
             if (con) {
                 if (con.code == 200) {
                     let container = con.container;
+                    console.time(`getMemoryUsage for ${containername}`);
                     let stats = await container.stats({ stream: false });
+                    console.timeEnd(`getMemoryUsage for ${containername}`);
                     return { code: 200, message: `Memory usage`, memoryUsage: stats.memory_stats.usage };
                 } else {
                     return { code: 93, message: `Container not found for getMemoryUsage(${containername})`, failedCall: con };
