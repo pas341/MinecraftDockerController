@@ -28,6 +28,8 @@ exports.event = {
     register: async (socket) => {
         socket.on(`ping`, async (start, callback) => {
             let currentTime = getUTCNow();
+            console.log(`start: ${start}`);
+            console.log(`ping received at: ${currentTime}`);
             console.log(`currentPing: ${currentTime - start}`);
             callback({ code: 200, message: `pong`, timestamp: new Date().toISOString(), receiveTime: currentTime - start });
         });
