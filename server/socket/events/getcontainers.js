@@ -16,10 +16,12 @@ exports.event = {
     register: async (socket) => {
         socket.on(`getcontainers`, async (callback) => {
             try {
+                console.time(`getcontainers`);
                 let containers = await dockerManager.getContainers();
+                console.timeEnd(`getcontainers`);
                 let output = [];
 
-
+                console.time(`container loop`);
                 for (let container of containers) {
                     let id = container.Id || container.Names[0].replace(`/`, ``);
                     let names = container.Names;
@@ -35,6 +37,7 @@ exports.event = {
                     obj.memoryUsage = memoryUsage;
                     output.push(obj);
                 }
+                console.timeEnd(`container loop`);
 
                 await callback(output);
             } catch (error) {
