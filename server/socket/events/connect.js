@@ -21,8 +21,16 @@ exports.event = {
                 if (response.code == 201) {
                     if (fs.existsSync(`${process.cwd()}/data/token.txt`)) {
                         socket.emit(`identify`, { identity: fs.readFileSync(`${process.cwd()}/data/token.txt`, `utf-8`), machineid: machineid });
+                        // listen to docker events and send event to server
+                        dockerManager.listenToDockerEvents((event) => {
+                            socket.emit(`dockerEvent`, event);
+                        }, { event: ['start', 'stop', 'die', 'destroy'] });
                     } else if (response.code == 200) {
                         socket.emit(`identify`, { identity: response.token, machineid: machineid });
+                        // listen to docker events and send event to server
+                        dockerManager.listenToDockerEvents((event) => {
+                            socket.emit(`dockerEvent`, event);
+                        }, { event: ['start', 'stop', 'die', 'destroy'] });
                     } else {
                         console.log(`Server Token missing for server please contact the tool developer`);
                         socket.disconnect(true);
