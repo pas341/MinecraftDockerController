@@ -221,7 +221,7 @@ exports.manager = {
             }
 
             let con = await self.getContainer(containername);
-            let params = { stdout: true, stderr: true, follow: false };
+            let params = { stdout: true, stderr: true, follow: false, tail: 1500 };
             let logs = await con.container.logs(params);
             // Split logs into lines and reverse them so latest logs are first
             let logLines = logs.toString(`utf-8`).split('\n').reverse();
