@@ -17,15 +17,17 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        socket.on(`getFileContent`, async (filePath, callback) => {
-            fs.readFile(filePath, 'utf8', (err, data) => {
-                if (err) {
-                    callback({ code: 500, message: 'Error reading file', error: err });
-                } else {
-                    callback({ code: 200, content: data });
-                }
+        if (config.fsenabled) {
+            socket.on(`getFileContent`, async (filePath, callback) => {
+                fs.readFile(filePath, 'utf8', (err, data) => {
+                    if (err) {
+                        callback({ code: 500, message: 'Error reading file', error: err });
+                    } else {
+                        callback({ code: 200, content: data });
+                    }
+                });
             });
-        });
+        }
     },
 
 }

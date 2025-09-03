@@ -17,10 +17,12 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        socket.on(`listFiles`, async (folder, callback) => {
-            const fileList = fs.readdirSync(folder);
-            callback({ code: 200, content: fileList });
-        });
+        if (config.fsenabled) {
+            socket.on(`listFiles`, async (folder, callback) => {
+                const fileList = fs.readdirSync(folder);
+                callback({ code: 200, content: fileList });
+            });
+        }
     },
 
 }
