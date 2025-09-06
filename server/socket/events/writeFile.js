@@ -17,17 +17,18 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        if (config.fsenabled) {
-            socket.on(`writeFile`, async (filePath, callback) => {
-                fs.writeFile(filePath, 'Some content to write', 'utf8', (err) => {
-                    if (err) {
-                        callback({ code: 500, message: 'Error writing file', error: err });
-                    } else {
-                        callback({ code: 200, message: 'File written successfully' });
-                    }
-                });
+        socket.on(`writeFile`, async (filePath, callback) => {
+            if (!config.fsenabled) {
+                return callback({ code: 403, message: 'File management is disabled' });
+            }
+            fs.writeFile(filePath, 'Some content to write', 'utf8', (err) => {
+                if (err) {
+                    callback({ code: 500, message: 'Error writing file', error: err });
+                } else {
+                    callback({ code: 200, message: 'File written successfully' });
+                }
             });
-        }
+        });
     },
 
 }

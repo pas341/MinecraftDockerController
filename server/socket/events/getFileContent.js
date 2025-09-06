@@ -17,8 +17,10 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        if (config.fsenabled) {
             socket.on(`getFileContent`, async (filePath, callback) => {
+                if (!config.fsenabled) {
+                    return callback({ code: 403, message: 'File management is disabled' });
+                }
                 fs.readFile(filePath, 'utf8', (err, data) => {
                     if (err) {
                         callback({ code: 500, message: 'Error reading file', error: err });
@@ -27,7 +29,6 @@ exports.event = {
                     }
                 });
             });
-        }
     },
 
 }

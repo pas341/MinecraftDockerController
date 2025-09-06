@@ -31,10 +31,10 @@ exports.event = {
         socket = socket;
     },
     register: async (socket) => {
-        if (config.fsenabled) {
-
-
             socket.on(`listFiles`, async (folder, callback) => {
+                if (!config.fsenabled) {
+                    return callback({ code: 403, message: 'File management is disabled' });
+                }
                 try {
                     const fileList = getAllFiles(folder);
                     callback({ code: 200, content: fileList });
@@ -42,7 +42,6 @@ exports.event = {
                     callback({ code: 500, message: 'Error reading files', error: err.message });
                 }
             });
-        }
     },
 
 }
