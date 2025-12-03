@@ -1,4 +1,5 @@
 const config = require(`${__dirname}/server/config/config.json`);
+const fs = require('fs');
 
 const requiredConfigVerision = `1.0.0`;
 if (config.version !== requiredConfigVerision) {
@@ -17,6 +18,12 @@ if (myArgs.includes(`--emulator`)) {
 	console.log(`:: Emulator mode enabled`);
 }
 
+const updateMainConfig = function(newConfig) {
+	fs.writeFileSync(`${__dirname}/server/config/config.json`, JSON.stringify(newConfig, null, 4), 'utf8');
+	console.log('Config saved. Exiting to allow pm2 to restart the app.');
+	process.exit(0);
+};
+
 const scripts = {
 	socket: {
 		config: config.socket,
@@ -24,6 +31,7 @@ const scripts = {
 	},
 	config: {
 		main: config,
+		save: () => updateMainConfig(config),
 	},
 	managers: {
 		docker: myArgs.includes(`--emulator`) ? docketManagerEmulator : dockerManager,

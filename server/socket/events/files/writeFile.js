@@ -15,6 +15,7 @@ exports.event = {
         identity = scripts.identity;
         socketConfig = sc;
         socket = socket;
+
     },
     register: async (socket) => {
         socket.on(`writeFile`, async (filePath, content, callback) => {

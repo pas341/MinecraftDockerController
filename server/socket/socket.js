@@ -179,19 +179,38 @@ exports.so = {
     registerListeners: async () => {
         try {
             const eventsPath = path.join(__dirname, 'events');
-            const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-            for (const file of eventFiles) {
-                //console.log(`Loading event file: ${file}`); // Debugging log
-                const event = require(path.join(eventsPath, file)).event;
-                if (event && typeof event.register === 'function') {
-                    //console.log(`Initializing event: ${file}`); // Debugging log
-                    await event.init(scripts, socket, socketConfig);
-                    await event.register(socket);
-                    //console.log(`Registered event: ${file}`); // Debugging log
-                    listeners.push(file.replace('.js', ''));
-                } else {
-                    //console.log(`No register function found in event file: ${file}`); // Debugging log
+            // Recursively collect all .js files under the events directory
+            function getJsFiles(dir) {
+                let results = [];
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                        results = results.concat(getJsFiles(fullPath));
+                    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+                        results.push(fullPath);
+                    }
+                }
+                return results;
+            }
+
+            const eventFiles = getJsFiles(eventsPath);
+
+            for (const fullPath of eventFiles) {
+                try {
+                    const relPath = path.relative(eventsPath, fullPath).replace(/\\/g, '/');
+                    const mod = require(fullPath);
+                    const event = mod && mod.event;
+                    if (event && typeof event.register === 'function') {
+                        await event.init(scripts, socket, socketConfig);
+                        await event.register(socket);
+                        listeners.push(relPath.replace(/\.js$/, ''));
+                    } else {
+                        // skip files without an event.register function
+                    }
+                } catch (err) {
+                    console.error(`Error initializing event ${fullPath}: ${err}`);
                 }
             }
         } catch (error) {
