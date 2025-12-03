@@ -18,6 +18,7 @@ exports.event = {
             const isFileManagementEnabled = config.fsenabled;
             const capabilities = {
                 fileManagement: isFileManagementEnabled,
+                autoUpdate: true
             };
             await callback({ code: 200, message: `System capabilities fetched`, capabilities: capabilities });
         });
