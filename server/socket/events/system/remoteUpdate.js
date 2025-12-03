@@ -16,7 +16,7 @@ exports.event = {
     register: async (socket) => {
         socket.on(`system/remoteupdate`, async (callback) => {
             try {
-
+                console.log(callback);
                 // Run git pull in the base directory
                 exec('git pull', { cwd: process.cwd() }, (error, stdout, stderr) => {
                     if (error) {
@@ -29,13 +29,17 @@ exports.event = {
                     res.status(200).json({ message: 'remote updated successfully', output: stdout });
                 });
                 
-                await callback({ code: 200, message: `System update initiated. Server will restart shortly.` });
+                if (callback) {
+                    await callback({ code: 200, message: `System update initiated. Server will restart shortly.` });
+                }
                 setTimeout(() => {
                     process.exit(0);
                 }, 500);
             } catch (e) {
                 console.error(e);
-                await callback({ code: 1, message: `error during system update` });
+                if (callback) {
+                    await callback({ code: 1, message: `error during system update` });
+                }
             }
         });
     },
