@@ -37,7 +37,7 @@ exports.event = {
                     const archive = archiver('zip', { zlib: { level: 9 } });
 
                     output.on('close', () => {
-                        return callback({ code: 200, message: 'Backup created', path: zipPath, bytes: archive.pointer() });
+                        return callback({ code: 200, message: 'Backup created' });
                     });
 
                     archive.on('warning', (err) => {
