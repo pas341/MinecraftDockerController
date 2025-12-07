@@ -43,7 +43,7 @@ exports.event = {
                     const archive = archiver('zip', { zlib: { level: 9 } });
                     await callback({ code: 200, state: 'started' });
                     output.on('close', async () => {
-                        return await callback({ code: 200, state: 'completed' });
+                        return await callback({ code: 200, state: 'closed' });
                     });
 
                     archive.on('warning', (err) => {
@@ -63,7 +63,7 @@ exports.event = {
                     // add the directory's contents (not the directory itself)
                     archive.directory(opts.target, false);
                     await archive.finalize();
-                    await callback({ code: 200, state: 'finalizing' });
+                    await callback({ code: 200, state: 'completed' });
                 } catch (err) {
                     console.error(`Backup error: ${err}`);
                     return await callback({ code: 500, message: 'Backup failed', error: String(err) });
