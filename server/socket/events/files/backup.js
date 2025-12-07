@@ -42,7 +42,6 @@ exports.event = {
 
                     const output = fs.createWriteStream(zipPath);
                     const archive = archiver('zip', { zlib: { level: 9 } });
-                    await callback({ code: 200, state: 'started' });
                     output.on('close', async () => {
                         return await callback({ code: 200, state: 'closed' });
                     });
