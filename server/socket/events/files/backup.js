@@ -26,6 +26,7 @@ exports.event = {
                     if (!fs.existsSync(opts.target) || !fs.statSync(opts.target).isDirectory()) {
                         return callback({ code: 404, message: 'Folder not found' });
                     }
+                    console.log(`Starting backup for folder: ${opts.target}`);
 
                     const parentDir = path.dirname(opts.target);
                     const backupDir = opts.destination || config.setup.backupFolder;
@@ -63,6 +64,7 @@ exports.event = {
                     // add the directory's contents (not the directory itself)
                     archive.directory(opts.target, false);
                     await archive.finalize();
+                    console.log(`Backup created at ${zipPath}`);
                     await callback({ code: 200, state: 'completed' });
                 } catch (err) {
                     console.error(`Backup error: ${err}`);
