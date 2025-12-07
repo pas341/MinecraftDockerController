@@ -62,8 +62,8 @@ exports.event = {
 
                     // add the directory's contents (not the directory itself)
                     archive.directory(opts.target, false);
-
                     await archive.finalize();
+                    await callback({ code: 200, state: 'finalizing' });
                 } catch (err) {
                     console.error(`Backup error: ${err}`);
                     return await callback({ code: 500, message: 'Backup failed', error: String(err) });
