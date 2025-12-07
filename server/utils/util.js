@@ -145,7 +145,7 @@ var c = {
 			stream.on('error', (err) => reject(err));
 		});
 	},
-	enusreDirectoryExists: function (dirPath) {
+	ensureDirectoryExists: function (dirPath) {
 		const fs = require('fs');
 		const path = require('path');
 		if (!fs.existsSync(dirPath)) {
