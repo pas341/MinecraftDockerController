@@ -18,22 +18,22 @@ exports.event = {
     },
     register: async (socket) => {
         if (config.fsenabled) {
-            socket.on(`file/backup`, async (key, folderPath, backupFolder, callback) => {
+            socket.on(`file/backup`, async (opts, callback) => {
                 try {
-                    if (!folderPath) {
+                    if (!opts.target) {
                         return callback({ code: 400, message: 'No folder path specified' });
                     }
-                    if (!fs.existsSync(folderPath) || !fs.statSync(folderPath).isDirectory()) {
+                    if (!fs.existsSync(opts.target) || !fs.statSync(opts.target).isDirectory()) {
                         return callback({ code: 404, message: 'Folder not found' });
                     }
 
-                    const parentDir = path.dirname(folderPath);
-                    const backupDir = backupFolder || config.setup.backupFolder;
-                    const baseName = path.basename(folderPath);
+                    const parentDir = path.dirname(opts.target);
+                    const backupDir = opts.destination || config.setup.backupFolder;
+                    const baseName = path.basename(opts.target);
                     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                     const zipName = `${baseName}-${timestamp}.zip`;
                     // Define the container-specific backup directory
-                    const containerBackupDir = path.join(backupDir, key);
+                    const containerBackupDir = path.join(backupDir, opts.key);
                     // Ensure backup directory exists
                     util.ensureDirectoryExists(containerBackupDir);
                     // Define the full path for the zip file
