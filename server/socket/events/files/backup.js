@@ -60,8 +60,8 @@ exports.event = {
 
                     archive.pipe(output);
 
-                    // include the folder itself inside zip (use '.' to include only contents)
-                    archive.directory(opts.target, baseName);
+                    // add the directory's contents (not the directory itself)
+                    archive.directory(opts.target, false);
 
                     await archive.finalize();
                 } catch (err) {
