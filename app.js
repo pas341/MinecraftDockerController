@@ -14,7 +14,7 @@ const portScanner = require(`./server/utils/portScanner.js`).scanner;
 const myArgs = process.argv.slice(2);
 const docketManagerEmulator = require(`./server/docker/dockerManagerEmulator.js`).manager;
 
-if (myArgs.includes(`--emulator`)) {
+if (myArgs.includes(`-emulator`) || myArgs.includes(`-e`)) {
 	console.log(`:: Emulator mode enabled`);
 }
 
@@ -34,14 +34,14 @@ const scripts = {
 		save: () => updateMainConfig(config),
 	},
 	managers: {
-		docker: myArgs.includes(`--emulator`) ? docketManagerEmulator : dockerManager,
+		docker: myArgs.includes(`-emulator`) ? docketManagerEmulator : dockerManager,
 	},
 	utils: {
 		system: systemUtils,
 		portScanner: portScanner,
 	},
 	settings: {
-		isEmulator: myArgs.includes(`--emulator`) || myArgs.includes(`-e`),
+		isEmulator: myArgs.includes(`-emulator`) || myArgs.includes(`-e`),
 	},
 	util: util,
 	args: myArgs,

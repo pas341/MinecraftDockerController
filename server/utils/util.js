@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 var c = {
 	color: {
 		accent: 0x37A0DC,
@@ -141,6 +144,13 @@ var c = {
 			stream.on('end', () => resolve(Buffer.concat(chunks).toString()));
 			stream.on('error', (err) => reject(err));
 		});
+	},
+	enusreDirectoryExists: function (dirPath) {
+		const fs = require('fs');
+		const path = require('path');
+		if (!fs.existsSync(dirPath)) {
+			fs.mkdirSync(dirPath, { recursive: true });
+		}
 	},
 	string: {
 		slugify: function (s) {

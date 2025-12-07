@@ -18,7 +18,7 @@ exports.event = {
     },
     register: async (socket) => {
         if (config.fsenabled) {
-            socket.on(`file/backup`, async (folderPath, callback) => {
+            socket.on(`file/backup`, async (key, folderPath, backupFolder, callback) => {
                 try {
                     if (!folderPath) {
                         return callback({ code: 400, message: 'No folder path specified' });
@@ -28,16 +28,22 @@ exports.event = {
                     }
 
                     const parentDir = path.dirname(folderPath);
+                    const backupDir = backupFolder || config.setup.backupFolder;
                     const baseName = path.basename(folderPath);
                     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                     const zipName = `${baseName}-${timestamp}.zip`;
-                    const zipPath = path.join(parentDir, zipName);
+                    // Define the container-specific backup directory
+                    const containerBackupDir = path.join(backupDir, key);
+                    // Ensure backup directory exists
+                    util.ensureDirectoryExists(containerBackupDir);
+                    // Define the full path for the zip file
+                    const zipPath = path.join(containerBackupDir, zipName);
 
                     const output = fs.createWriteStream(zipPath);
                     const archive = archiver('zip', { zlib: { level: 9 } });
-
-                    output.on('close', () => {
-                        return callback({ code: 200, message: 'Backup created' });
+                    await callback({ code: 200, state: 'started' });
+                    output.on('close', async () => {
+                        return await callback({ code: 200, state: 'completed' });
                     });
 
                     archive.on('warning', (err) => {
@@ -60,7 +66,7 @@ exports.event = {
                     await archive.finalize();
                 } catch (err) {
                     console.error(`Backup error: ${err}`);
-                    return callback({ code: 500, message: 'Backup failed', error: String(err) });
+                    return await callback({ code: 500, message: 'Backup failed', error: String(err) });
                 }
             });
         }
